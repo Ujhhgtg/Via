@@ -1076,4 +1076,21 @@
     <string name="extension_data_technical">technical and interaction data</string>
     <string name="extension_data_website_activity">website activity</string>
     <string name="extension_data_website_content">website content</string>
+    <string name="package_choose_app">Choose app package</string>
+    <string name="package_choose_splits">Choose APK splits</string>
+    <string name="package_base_required">%1$s\n%2$s\nThe base APK is included. Splits matching this device are selected by default.</string>
+    <string name="package_split_architecture">CPU: %1$s</string>
+    <string name="package_split_density">Screen density: %1$s</string>
+    <string name="package_split_language">Language: %1$s</string>
+    <string name="package_split_feature">App feature</string>
+    <string name="package_invalid_selection">Select compatible splits with the same package and version, and include their required features.</string>
+    <string name="package_no_compatible_apk">This archive has no base APK compatible with this device.</string>
+    <string name="package_archive_failed">Unable to read app package: %1$s</string>
+    <string name="package_install_permission_required">Allow Via to install unknown apps in system settings to continue.</string>
+    <string name="package_install_failed">Installation failed: %1$s</string>
+    <string name="package_obb_title">Import OBB data</string>
+    <string name="package_obb_permission_required">The app is installed. Select Android/obb/%1$s to import its data. Some systems restrict access to this folder.</string>
+    <string name="package_obb_wrong_directory">Select Android/obb or Android/obb/%1$s.</string>
+    <string name="package_obb_import_failed">The app is installed, but OBB import failed: %1$s</string>
+    <string name="package_skip_obb">Skip</string>
 </resources>

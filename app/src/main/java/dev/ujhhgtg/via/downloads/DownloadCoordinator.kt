@@ -8,6 +8,7 @@ import android.os.Looper
 import dev.ujhhgtg.via.common.applicationIoScope
 import dev.ujhhgtg.via.data.BrowserPreferences
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -108,7 +109,7 @@ class DownloadCoordinator(private val context: Context, private val repository: 
     fun redownload(id: Long): Boolean {
         val record = repository.get(id) ?: return false
         if (running.containsKey(id) && !pause(id)) return false
-        persist(record.copy(chunks = 8, flags = record.flags and 2.inv(), headers = record.headers.filterKeys { it != "ETag" }))
+        persist(record.copy(chunks = 8, flags = record.flags and (2 or DownloadRecord.PACKAGE_MASK).inv(), headers = record.headers.filterKeys { it != "ETag" }))
         return repository.clearChunks(id) && start(id)
     }
 
@@ -164,6 +165,17 @@ class DownloadCoordinator(private val context: Context, private val repository: 
 
     /** m5.i's state observer releases the queue slot before UI/service observers receive the event. */
     private fun publishTransfer(record: DownloadRecord, speed: Long) {
+        if (record.isComplete && !record.packageInspected) {
+            applicationIoScope.launch {
+                val classified = try { DownloadPackageArchive.inspect(context, record) }
+                    catch (error: CancellationException) { throw error }
+                    catch (_: Exception) { record }
+                publishClassifiedTransfer(classified, speed)
+            }
+        } else publishClassifiedTransfer(record, speed)
+    }
+
+    private fun publishClassifiedTransfer(record: DownloadRecord, speed: Long) {
         speeds[record.id] = speed
         val previous = repository.get(record.id)?.state ?: record.state
         repository.update(record.copy(updatedAt = now()))
@@ -176,6 +188,11 @@ class DownloadCoordinator(private val context: Context, private val repository: 
             listeners.toList().forEach { it(record) }
             if (previous != record.state) stateListeners.toList().forEach { it(record, previous, record.state) }
         }
+    }
+
+    /** Older downloads get their content type filled in by the preview loader without changing file timestamps. */
+    internal fun savePackageClassification(record: DownloadRecord) {
+        if (repository.savePackageClassification(record.id, record.flags)) notifyChanged(record)
     }
 
     /** c5.b.l -> m5.f.b: a caller-owned transfer with h5.b's empty observer, outside the task queue. */

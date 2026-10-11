@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.DialogInterface
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.SpannableString
 import android.text.TextUtils
@@ -46,14 +47,15 @@ class ViaDialog(private val activity: Activity) {
     data class Item(val id: Int, val text: String)
     data class Result(val selected: IntArray?, val checked: Boolean, val edit: Array<String>?)
     private val host = activity.findViewById<View>(android.R.id.content)
-    private val hostHeight = host?.height ?: activity.resources.displayMetrics.heightPixels
-    private val hostWidth = host?.width ?: activity.resources.displayMetrics.widthPixels
+    private val hostHeight = host?.height?.takeIf { it > 0 } ?: activity.resources.displayMetrics.heightPixels
+    private val hostWidth = host?.width?.takeIf { it > 0 } ?: activity.resources.displayMetrics.widthPixels
     private val hostTop = if (host != null) IntArray(2).also(host::getLocationOnScreen)[1] else 0
     private var dialog: Dialog? = null
     private var content: View? = null
     private var blockedSwipe: WeakReference<SwipeBackLayout>? = null
     private var maximumWidth = 0
     private var title: String? = null
+    private var titleIcon: Drawable? = null
     private var message: CharSequence? = null
     private var checkLabel: String? = null
     private var checked: Boolean? = null
@@ -78,6 +80,7 @@ class ViaDialog(private val activity: Activity) {
 
     fun title(resource: Int) = title(activity.getString(resource))
     fun title(value: String) = apply { title = value }
+    fun titleIcon(value: Drawable?) = apply { titleIcon = value }
     fun message(resource: Int) = message(activity.getString(resource))
     fun message(value: CharSequence) = apply { message = value }
     fun customView(view: View) = apply { custom = view }
@@ -256,6 +259,12 @@ class ViaDialog(private val activity: Activity) {
         val compact = anchored && (adapter?.count ?: 0) > 0
         title?.let { value -> root.findViewById<TextView>(R.id.dialog_title).apply {
             visibility = View.VISIBLE; text = value
+            titleIcon?.let { icon ->
+                val size = activity.dp(24f)
+                icon.setBounds(0, 0, size, size)
+                compoundDrawablePadding = activity.dp(8f)
+                setCompoundDrawablesRelative(icon, null, null, null)
+            }
             if (compact) setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_title_size).toFloat())
             typeface = Typeface.DEFAULT_BOLD
             if (centered) gravity = Gravity.CENTER
@@ -288,9 +297,12 @@ class ViaDialog(private val activity: Activity) {
                 setOnItemClickListener { _, _, position, _ -> itemClick?.invoke(position); dismiss() }
                 setOnItemLongClickListener { _, _, position, _ -> itemLongClick?.invoke(position) ?: false }
             }
+            // The ListView must share its parent's viewport. A taller explicit child is clipped
+            // by MaxHeightLayout, so it thinks the hidden final rows are already on screen.
+            val available = (parent as MaxHeightLayout).maximumHeight
             val row = adapter.getView(0, null, this)
-            if (row.measuredHeight == 0) row.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-            if (row.measuredHeight * adapter.count > height) layoutParams.height = height
+            row.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            if (row.measuredHeight * adapter.count > available) layoutParams.height = available
         } }
         custom?.let { root.findViewById<FrameLayout>(R.id.dialog_custom).apply { visibility = View.VISIBLE; addView(it) } }
         checkLabel?.let { value -> root.findViewById<TextView>(R.id.dialog_check_label).apply { visibility = View.VISIBLE; text = value } }
@@ -312,6 +324,24 @@ class ViaDialog(private val activity: Activity) {
         negative?.let { value -> root.findViewById<TextView>(R.id.dialog_negative).apply { visibility = View.VISIBLE; text = value; setOnClickListener { negativeClick?.invoke(it); dismiss() } } }
         neutral?.let { value -> root.findViewById<TextView>(R.id.dialog_neutral).apply { visibility = View.VISIBLE; text = value; setOnClickListener { neutralClick?.invoke(it); dismiss() } } }
         applyTypeface(root)
+        if ((adapter?.count ?: 0) > 0) {
+            // Header, message and buttons also consume height. On short windows or with larger
+            // text, shrink the list's actual viewport rather than letting the window clip it.
+            root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            val usableHeight = if (Build.VERSION.SDK_INT >= 30) {
+                val metrics = activity.getSystemService(WindowManager::class.java).currentWindowMetrics
+                val bars = metrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+                metrics.bounds.height() - bars.top - bars.bottom
+            } else hostHeight
+            val overflow = root.measuredHeight - (usableHeight - activity.dp(24f))
+            if (overflow > 0) {
+                val list = root.findViewById<ListView>(R.id.dialog_list)
+                val wrapper = list.parent as MaxHeightLayout
+                val viewport = maxOf(1, wrapper.maximumHeight - overflow)
+                wrapper.maximumHeight = viewport
+                list.layoutParams.height = viewport
+            }
+        }
         dialog.setContentView(root)
         return dialog
     }

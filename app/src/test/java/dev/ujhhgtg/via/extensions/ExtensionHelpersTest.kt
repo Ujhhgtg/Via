@@ -1,6 +1,5 @@
 package dev.ujhhgtg.via.extensions
 
-import dev.ujhhgtg.via.engine.Engines
 import dev.ujhhgtg.via.ui.BrowserMenu
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -38,10 +37,9 @@ class ExtensionHelpersTest {
         assertFalse(ExtensionUpdater.isDue(0, 0, now))
     }
 
-    @Test fun menuEntryExistsOnlyWithExtensionSupport() {
-        val supported = Engines.backend.extensions != null
-        assertEquals(supported, BrowserMenu.EXTENSIONS in BrowserMenu.entries)
-        assertEquals(supported, BrowserMenu.EXTENSIONS in BrowserMenu.defaults)
+    @Test fun menuEntryExistsOnEveryEngine() {
+        assertTrue(BrowserMenu.EXTENSIONS in BrowserMenu.entries)
+        assertTrue(BrowserMenu.EXTENSIONS in BrowserMenu.defaults)
     }
 
     /** Every extension string, including Firefox's permission wording, ships in English and both Chinese locales. */

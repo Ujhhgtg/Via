@@ -105,7 +105,8 @@ object DownloadFiles {
     fun openIntent(context: Context, record: DownloadRecord): Intent? {
         if (!record.isComplete) return null
         val uri = uri(context, record) ?: return null
-        val mime = resolvedMime(record)
+        if (record.isPackageBundle) return SplitPackageInstallerActivity.intent(context, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val mime = if (record.isAndroidPackage) "application/vnd.android.package-archive" else resolvedMime(record)
         return Intent(if (mime == "application/vnd.android.package-archive") Intent.ACTION_INSTALL_PACKAGE else Intent.ACTION_VIEW)
             .setDataAndType(uri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
     }

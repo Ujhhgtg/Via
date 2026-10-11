@@ -25,10 +25,10 @@ import dev.ujhhgtg.via.ui.dialog.ViaDialog
 internal object DownloadOpenWith {
     private data class Option(val title: CharSequence, val icon: Drawable?, val open: () -> Unit)
 
-    fun show(activity: Activity, record: DownloadRecord, previewPdf: () -> Unit) {
+    fun show(activity: Activity, record: DownloadRecord, detectedApk: Boolean = false, previewPdf: () -> Unit) {
         if (!DownloadFiles.exists(activity, record)) { ViaToast.makeText(activity, R.string.file_does_not_exist, ViaToast.LENGTH_SHORT).show(); return }
         val uri = DownloadFiles.uri(activity, record) ?: return
-        val mime = DownloadFiles.resolvedMime(record).takeIf { it != "application/octet-stream" }
+        val mime = if (detectedApk) "application/vnd.android.package-archive" else DownloadFiles.resolvedMime(record).takeIf { it != "application/octet-stream" }
             ?: activity.contentResolver.getType(uri)?.takeIf { it != "application/octet-stream" }
             ?: DownloadFiles.resolvedMime(record)
         fun dp(value: Int) = (activity.resources.displayMetrics.density * value + .5f).toInt()

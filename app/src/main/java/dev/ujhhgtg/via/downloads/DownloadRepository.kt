@@ -24,6 +24,9 @@ class DownloadRepository(context: Context) {
     fun insert(record: DownloadRecord): Long = db.insert("tasks", null, values(record, includeId = false))
     fun update(record: DownloadRecord): Boolean = db.update("tasks", values(record, includeId = false).apply { put("updated_at", now()) }, "id = ?", arrayOf(record.id.toString())) > 0
     fun delete(id: Long): Boolean = db.delete("tasks", "id = ?", arrayOf(id.toString())) > 0
+    internal fun savePackageClassification(id: Long, flags: Int): Boolean = db.update("tasks", ContentValues().apply {
+        put("flags", flags)
+    }, "id = ? AND flags != ?", arrayOf(id.toString(), flags.toString())) > 0
     fun clearChunks(id: Long): Boolean = (db.delete("chunks", "task_id = ?", arrayOf(id.toString())) >= 0).also { if (it) chunkCache.remove(id) }
     fun resetChunks(id: Long): Boolean = (db.update("chunks", ContentValues().apply { put("downloaded", 0) }, "task_id = ?", arrayOf(id.toString())) >= 0).also {
         if (it) chunkCache[id]?.forEach { chunk -> chunk.downloaded = 0 }

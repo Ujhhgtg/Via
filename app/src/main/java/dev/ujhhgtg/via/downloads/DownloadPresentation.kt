@@ -6,6 +6,10 @@ import java.util.Locale
 
 object DownloadPresentation {
 
+    fun category(record: DownloadRecord): Int = if (record.isAndroidPackage) 3 else category(record.name).let {
+        if (record.packageInspected && it == 3) 8 else it
+    }
+
     /** z8.b0.w uses a 0.8 boundary for the next unit and one decimal place. */
     fun size(bytes: Long): String {
         val value: Double

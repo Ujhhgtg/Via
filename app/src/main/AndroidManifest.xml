@@ -39,6 +39,7 @@
         <receiver android:name=".reader.ReadAloudReceiver" android:exported="false" />
         <service android:name=".downloads.DownloadService" android:exported="false" android:foregroundServiceType="dataSync" />
         <receiver android:name=".downloads.DownloadReceiver" android:exported="false" />
+        <activity android:name=".downloads.SplitPackageInstallerActivity" android:exported="false" android:launchMode="singleTop" android:theme="@style/Theme.Via.PackageInstaller" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
 
         <activity android:name=".Shell" android:exported="true" android:launchMode="singleTask" android:alwaysRetainTaskState="true" android:supportsPictureInPicture="true" android:windowSoftInputMode="adjustResize" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /><category android:name="android.intent.category.APP_BROWSER" /></intent-filter>

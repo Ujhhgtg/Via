@@ -186,7 +186,7 @@ class DownloadScreen(context: Context, private val coordinator: DownloadCoordina
 
     fun refresh() {
         val all = coordinator.list()
-        val records = all.filter { (filter == 0 || DownloadPresentation.category(it.name) == filter) && (query.isEmpty() || it.name.contains(query)) }
+        val records = all.filter { (filter == 0 || DownloadPresentation.category(it) == filter) && (query.isEmpty() || it.name.contains(query)) }
         selectedIds.retainAll(records.map { it.id }.toSet())
         if (editing && records.isEmpty()) { range.finish(); editing = false; onEditingChanged?.invoke(false) }
         empty.visibility = if (records.isEmpty()) VISIBLE else GONE
@@ -437,10 +437,10 @@ class DownloadScreen(context: Context, private val coordinator: DownloadCoordina
         }
     }
     private fun downloadIcon(record: DownloadRecord): Int = when {
+        record.isAndroidPackage -> R.drawable.robot
         record.mimeType?.startsWith("audio/") == true -> R.drawable.music_note
         record.mimeType?.startsWith("video/") == true -> R.drawable.play_boxed
         record.mimeType?.startsWith("image/") == true -> R.drawable.image_frame
-        record.mimeType == "application/vnd.android.package-archive" -> R.drawable.robot
         record.mimeType?.startsWith("text/") == true || record.mimeType?.contains("document") == true || record.mimeType == "application/pdf" -> R.drawable.document
         record.mimeType?.contains("zip") == true || record.mimeType?.contains("compress") == true -> R.drawable.mouse
         else -> R.drawable.page

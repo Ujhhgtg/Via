@@ -9,11 +9,14 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Shader
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.util.Size
+import androidx.core.graphics.drawable.toBitmap
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.util.concurrent.Executors
 
@@ -24,6 +27,7 @@ internal class DownloadPreviews(context: Context, private val changed: (Long) ->
     private val workers = Executors.newFixedThreadPool(2)
     private data class Key(val id: Long, val uri: String?, val updatedAt: Long)
     private data class Preview(val drawable: Drawable?)
+    private data class Loaded(val record: DownloadRecord, val drawable: Drawable?)
     private val cache = object : LinkedHashMap<Key, Preview>(64, .75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Key, Preview>?) = size > 64
     }
@@ -32,20 +36,33 @@ internal class DownloadPreviews(context: Context, private val changed: (Long) ->
     var enabled = false
 
     fun icon(record: DownloadRecord): Drawable? {
-        if (!record.isComplete || !supported(record.mimeType)) return null
+        if (!record.isComplete) return null
         val key = Key(record.id, record.fileUri?.toString(), record.updatedAt)
         cache[key]?.let { return it.drawable }
         if (!enabled || closed || !pending.add(key)) return null
         workers.execute {
             val result = runCatching {
-                val uri = record.fileUri ?: return@runCatching null
-                if (record.mimeType == "application/vnd.android.package-archive") apkIcon(uri)
-                else thumbnail(uri)?.let { RoundedPreview(it, dp(2)) }
+                runBlocking {
+                    val classified = DownloadPackageArchive.inspect(context, record)
+                    val uri = record.fileUri ?: DownloadFiles.uri(context, record)
+                    val drawable = if (uri == null) null else when {
+                        classified.isPackageBundle -> DownloadPackageArchive.withBaseApk(context, uri) { file ->
+                            iconFromApk(file.path)?.let { icon -> BitmapDrawable(context.resources, icon.toBitmap(dp(24), dp(24))) }
+                        }
+                        classified.isAndroidPackage -> apkIcon(uri)
+                        supported(classified.mimeType) -> thumbnail(uri)?.let { RoundedPreview(it, dp(2)) }
+                        else -> null
+                    }
+                    Loaded(classified, drawable)
+                }
             }
             main.post {
                 pending.remove(key)
                 if (!closed) {
-                    cache[key] = Preview(result.getOrNull())
+                    val loaded = result.getOrNull()
+                    cache[key] = Preview(loaded?.drawable)
+                    if (loaded != null && loaded.record.flags != record.flags)
+                        DownloadCoordinator.get(context).savePackageClassification(loaded.record)
                     // DownloadTaskViewDelegate$c.a publishes icon payload 2 even
                     // for a normal null result; onError caches the fallback only.
                     if (result.isSuccess) changed(record.id)
@@ -56,20 +73,21 @@ internal class DownloadPreviews(context: Context, private val changed: (Long) ->
     }
 
     @Suppress("DEPRECATION")
+    private fun iconFromApk(path: String?): Drawable? {
+        if (path == null) return null
+        val manager = context.packageManager
+        val info = manager.getPackageArchiveInfo(path, 0)?.applicationInfo ?: return null
+        info.sourceDir = path; info.publicSourceDir = path
+        return info.loadIcon(manager).apply { setBounds(0, 0, dp(24), dp(24)) }
+    }
+
     private fun apkIcon(uri: Uri): Drawable? {
-        fun fromArchive(path: String?): Drawable? {
-            if (path == null) return null
-            val manager = context.packageManager
-            val info = manager.getPackageArchiveInfo(path, 0)?.applicationInfo ?: return null
-            info.sourceDir = path; info.publicSourceDir = path
-            return info.loadIcon(manager).apply { setBounds(0, 0, dp(24), dp(24)) }
-        }
         var descriptor: ParcelFileDescriptor? = null
         return try {
-            if (uri.scheme == "file") fromArchive(uri.path)
+            if (uri.scheme == "file") iconFromApk(uri.path)
             else {
                 descriptor = context.contentResolver.openFileDescriptor(uri, "r")
-                descriptor?.let { fromArchive("/proc/self/fd/${it.fd}") }
+                descriptor?.let { iconFromApk("/proc/self/fd/${it.fd}") }
             }
         } catch (_: Exception) {
             // z8.t3.b treats APK inspection failures as ordinary null previews.

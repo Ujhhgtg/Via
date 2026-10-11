@@ -87,4 +87,12 @@
         <item name="android:isLightTheme">false</item>
     </style>
     <style name="Theme.Via.Translucent" parent="@android:style/Theme.Translucent.NoTitleBar" />
+    <style name="Theme.Via.PackageInstaller" parent="Theme.Via">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+    <style name="Theme.Via.PackageInstaller.Dark" parent="Theme.Via.Dark">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>

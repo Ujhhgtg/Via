@@ -24,6 +24,18 @@ data class DownloadRecord(
     val isActive: Boolean get() = state in 1..99 && state != DownloadState.PAUSED
     val isComplete: Boolean get() = state in 100..199
     val isFailed: Boolean get() = state in 200..299
+    /** Via-owned content classification; the original transfer flags occupy bits 0 through 2. */
+    val packageInspected: Boolean get() = flags and PACKAGE_MASK != 0
+    val isPackageBundle: Boolean get() = flags and PACKAGE_MASK == PACKAGE_BUNDLE
+    val isAndroidPackage: Boolean get() = if (packageInspected) flags and PACKAGE_MASK >= PACKAGE_APK
+        else mimeType == "application/vnd.android.package-archive"
+
+    companion object {
+        internal const val PACKAGE_MASK = 24
+        internal const val PACKAGE_OTHER = 8
+        internal const val PACKAGE_APK = 16
+        internal const val PACKAGE_BUNDLE = 24
+    }
 }
 
 /** g5.b and m5.e: terminal 100 is success, terminal 200 is failure. */

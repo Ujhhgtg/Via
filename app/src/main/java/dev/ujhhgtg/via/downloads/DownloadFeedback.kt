@@ -32,7 +32,7 @@ class DownloadFeedback(
     private fun finished(record: DownloadRecord) {
         val name = abbreviate(record.name)
         val message = activity.getString(if (record.isComplete) R.string.file_download_completed else R.string.file_download_failed, name)
-        if (record.isComplete && record.mimeType == "application/vnd.android.package-archive") {
+        if (record.isComplete && record.isAndroidPackage) {
             ViaToast.show(activity, message, actionText = activity.getString(R.string.install)) { install(record) }
             return
         }

@@ -50,6 +50,10 @@ internal class DialogChoiceAdapter(
             if (highlightOnly) text.gravity = android.view.Gravity.CENTER
         }
         text.isEnabled = false; text.text = labels[position]
+        if (!highlightOnly && '\n' in labels[position]) {
+            text.setSingleLine(false)
+            text.ellipsize = null
+        }
         val checked = if (multiple) position in selectedItems else position == selectedItem
         if (text is CheckBox) text.isChecked = checked else text.setBackgroundColor(if (checked) 0x30808080 else 0)
         text.isFocusable = false; text.isClickable = false

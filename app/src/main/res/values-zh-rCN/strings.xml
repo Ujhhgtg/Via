@@ -1059,4 +1059,21 @@
     <string name="extension_data_technical">技术和交互数据</string>
     <string name="extension_data_website_activity">网站活动</string>
     <string name="extension_data_website_content">网站内容</string>
+    <string name="package_choose_app">选择应用包</string>
+    <string name="package_choose_splits">选择 APK 分包</string>
+    <string name="package_base_required">%1$s\n%2$s\n基础 APK 必选，已默认勾选适合当前设备的分包。</string>
+    <string name="package_split_architecture">CPU 架构：%1$s</string>
+    <string name="package_split_density">屏幕密度：%1$s</string>
+    <string name="package_split_language">语言：%1$s</string>
+    <string name="package_split_feature">应用功能</string>
+    <string name="package_invalid_selection">请选择包名、版本一致且兼容的分包，并勾选其依赖的功能包。</string>
+    <string name="package_no_compatible_apk">此归档中没有适合当前设备的基础 APK。</string>
+    <string name="package_archive_failed">无法读取应用包：%1$s</string>
+    <string name="package_install_permission_required">请在系统设置中允许 Via 安装未知应用，然后继续。</string>
+    <string name="package_install_failed">安装失败：%1$s</string>
+    <string name="package_obb_title">导入 OBB 数据</string>
+    <string name="package_obb_permission_required">应用已安装。请选择 Android/obb/%1$s 目录以导入数据；部分系统会限制此目录的访问。</string>
+    <string name="package_obb_wrong_directory">请选择 Android/obb 或 Android/obb/%1$s 目录。</string>
+    <string name="package_obb_import_failed">应用已安装，但 OBB 数据导入失败：%1$s</string>
+    <string name="package_skip_obb">跳过</string>
 </resources>

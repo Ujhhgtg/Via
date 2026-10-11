@@ -1021,4 +1021,21 @@
     <string name="extension_data_technical">技術與互動資料</string>
     <string name="extension_data_website_activity">網站使用紀錄</string>
     <string name="extension_data_website_content">網站內容</string>
+    <string name="package_choose_app">選擇應用套件</string>
+    <string name="package_choose_splits">選擇 APK 分割套件</string>
+    <string name="package_base_required">%1$s\n%2$s\n基礎 APK 為必選，已預設勾選適合目前裝置的分割套件。</string>
+    <string name="package_split_architecture">CPU 架構：%1$s</string>
+    <string name="package_split_density">螢幕密度：%1$s</string>
+    <string name="package_split_language">語言：%1$s</string>
+    <string name="package_split_feature">應用功能</string>
+    <string name="package_invalid_selection">請選擇套件名稱、版本一致且相容的分割套件，並勾選其依賴的功能套件。</string>
+    <string name="package_no_compatible_apk">此封存檔中沒有適合目前裝置的基礎 APK。</string>
+    <string name="package_archive_failed">無法讀取應用套件：%1$s</string>
+    <string name="package_install_permission_required">請在系統設定中允許 Via 安裝未知應用程式，然後繼續。</string>
+    <string name="package_install_failed">安裝失敗：%1$s</string>
+    <string name="package_obb_title">匯入 OBB 資料</string>
+    <string name="package_obb_permission_required">應用程式已安裝。請選擇 Android/obb/%1$s 目錄以匯入資料；部分系統會限制此目錄的存取。</string>
+    <string name="package_obb_wrong_directory">請選擇 Android/obb 或 Android/obb/%1$s 目錄。</string>
+    <string name="package_obb_import_failed">應用程式已安裝，但 OBB 資料匯入失敗：%1$s</string>
+    <string name="package_skip_obb">略過</string>
 </resources>
