@@ -1476,7 +1476,8 @@ class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.F
     /** Original c8.s6.D9 has separate handlers for menu long presses. */
     private fun performMenuLongPress(id: Int, flags: Int) {
         when (id) {
-            BrowserMenu.EXTENSIONS -> openSettings("settings_extensions")
+            BrowserMenu.EXTENSIONS -> if (extensionHost != null) openSettings("settings_extensions")
+                else ViaToast.show(host, R.string.extensions_unavailable)
             1 -> host.navigate(dev.ujhhgtg.via.settings.NightModeSettingsFragment())
             2 -> {
                 parentFragmentManager.setFragmentResultListener(CompactBookmarksFragment.RESULT, viewLifecycleOwner) { key, result ->
@@ -1521,6 +1522,7 @@ class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.F
     private fun performMenuAction(id: Int, flags: Int = 0) {
         when (id) {
             BrowserMenu.EXTENSIONS -> extensionHost?.showActions(current()?.page)
+                ?: ViaToast.show(host, R.string.extensions_unavailable)
             -1, 21 -> exitBrowser()
             1 -> {
                 val systemNight = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES

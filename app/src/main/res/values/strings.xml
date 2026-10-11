@@ -1002,6 +1002,7 @@
     <string name="favorite_deleted">\u0022%1$s\u0022 has been deleted</string>
     <string name="menu_download">Download</string>
     <string name="settings_extensions">Extensions</string>
+    <string name="extensions_unavailable">Extensions are unavailable in this version.</string>
     <string name="enable_extensions">Enable extensions</string>
     <string name="find_extensions">Find add-ons</string>
     <string name="install_extension_from_file">Install from file</string>

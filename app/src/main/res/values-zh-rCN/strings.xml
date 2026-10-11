@@ -985,6 +985,7 @@
     <string name="favorite_deleted">\u0022%1$s\u0022 已删除</string>
     <string name="menu_download">下载</string>
     <string name="settings_extensions">扩展</string>
+    <string name="extensions_unavailable">当前版本不支持扩展。</string>
     <string name="enable_extensions">启用扩展</string>
     <string name="find_extensions">获取扩展</string>
     <string name="install_extension_from_file">从文件安装</string>
