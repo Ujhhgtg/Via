@@ -56,6 +56,7 @@ class DownloadCoordinator(private val context: Context, private val repository: 
         val stream = request.streamId?.let(DownloadStreamRegistry::take)
         if (request.streamId != null && stream == null) throw IOException("Download stream is no longer available")
         try {
+            stream?.pause() // A queued task must not keep consuming its response in the background.
             val mime = request.mimeType ?: if (data) DownloadDataUrl.mime(request.url) else null
             val name = request.fileName?.takeIf(String::isNotEmpty) ?: DownloadFiles.name(request.url, request.contentDisposition, mime)
             val destination = if (request.path == null && request.fileUri == null)
@@ -133,11 +134,10 @@ class DownloadCoordinator(private val context: Context, private val repository: 
             // m5.f/k submits an empty task for an unrecognized source; it completes immediately
             // and never occupies the three active queue slots.
             if (!network && data == null && stream == null) continue
-            // A Gecko response body is already spooled before the dialog is shown; keep this
-            // one-shot transfer non-pausable so a pause cannot discard its only source.
-            val control = DownloadControl(pausable = network)
+            val control = DownloadControl(pausable = network || stream != null)
             running[record.id] = control
-            val transfer = if (data == null) DownloadTransfer(context, record, repository, control, ::publishTransfer) else null
+            val transfer = if (network) DownloadTransfer(context, record, repository, control, ::publishTransfer) else null
+            if (stream != null) control.pauseAction = { control.paused = true; stream.pause() }
             // e5.d serviced task orchestrators and chunk workers; the IO dispatcher now does.
             applicationIoScope.launch {
                 if (data != null) transferData(record, data, control)
@@ -159,37 +159,8 @@ class DownloadCoordinator(private val context: Context, private val repository: 
         return result
     }
 
-    private suspend fun transferStream(initial: DownloadRecord, source: DownloadStreamRegistry.Source, control: DownloadControl): DownloadRecord {
-        val result = runCatching {
-            val file = source.await()
-            val output = DownloadOutput.open(context, initial)
-            try {
-                file.inputStream().use { input ->
-                    val buffer = ByteArray(64 * 1024)
-                    while (true) {
-                        if (control.paused || control.deleted) throw DownloadFailure(1)
-                        val count = input.read(buffer)
-                        if (count < 0) break
-                        output.write(buffer, 0, count)
-                    }
-                }
-                output.sync()
-            } finally { runCatching { output.close() } }
-            val length = file.length()
-            initial.copy(state = DownloadState.COMPLETE, downloadedSize = length, totalSize = length)
-        }.getOrElse { error ->
-            initial.copy(
-                state = if (error is DownloadFailure && error.code == 1) DownloadState.PAUSED else DownloadState.FAILED,
-                errorMessage = if (error is DownloadFailure && error.code == 1) initial.errorMessage
-                else DownloadFailure(if (error is DownloadFailure) error.code else 12, error).message,
-            )
-        }
-        if (result.state == DownloadState.COMPLETE) source.finish(true, result.downloadedSize)
-        else if (result.state == DownloadState.FAILED) source.finish(false, 0)
-        source.close()
-        if (!control.deleted) publishTransfer(result, 0)
-        return result
-    }
+    private suspend fun transferStream(record: DownloadRecord, source: DownloadStreamRegistry.Source, control: DownloadControl): DownloadRecord =
+        DownloadStreamTransfer(record, source, control, { DownloadOutput.open(context, it) }, ::publishTransfer).run()
 
     /** m5.i's state observer releases the queue slot before UI/service observers receive the event. */
     private fun publishTransfer(record: DownloadRecord, speed: Long) {
@@ -198,7 +169,8 @@ class DownloadCoordinator(private val context: Context, private val repository: 
         repository.update(record.copy(updatedAt = now()))
         main.post {
             if (record.isComplete || record.isFailed || record.state == DownloadState.PAUSED) {
-                running.remove(record.id); volatileData.remove(record.id); volatileStreams.remove(record.id)?.close(); speeds.remove(record.id)
+                running.remove(record.id); volatileData.remove(record.id); speeds.remove(record.id)
+                if (record.state != DownloadState.PAUSED) volatileStreams.remove(record.id)?.close()
                 dispatch()
             } else if (record.state == DownloadState.WAITING_NETWORK) running.remove(record.id)
             listeners.toList().forEach { it(record) }
