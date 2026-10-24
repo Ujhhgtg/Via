@@ -42,6 +42,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import dev.ujhhgtg.via.browser.AddressTitleFormatter
+import dev.ujhhgtg.via.browser.BrowserInstanceState
 import dev.ujhhgtg.via.browser.BrowserIntentRouter
 import dev.ujhhgtg.via.browser.BrowserTab
 import dev.ujhhgtg.via.browser.InternalDocuments
@@ -124,6 +125,11 @@ import java.util.concurrent.Executors
 /** e8.i.f / e8.i.g: generated ids of the selection toolbar's Search and Find entries. */
 private const val SELECTION_SEARCH = 1
 private const val SELECTION_FIND = 2
+
+/** Instance-state keys for the browser tabs; the heavy tab state lives in a cache file. */
+private const val TABS_STATE = "browser_tabs"
+private const val TABS_STATE_FILE = "browser_tabs_file"
+private const val TABS_STATE_VERSION = "browser_tabs_version"
 
 /** Browser fragment hosted by Shell, corresponding to original c8.s6. */
 class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.FindInPageFragment.Host, dev.ujhhgtg.via.tools.AdMarkerFragment.Host {
@@ -242,6 +248,8 @@ class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.F
     private val httpAuthorization = mutableMapOf<String, String>()
     private var isPrivate = false
     private var restoring = false
+    /** Cache file holding the full tab state that this fragment's instance state references. */
+    private var instanceStateFile: String? = null
     private var homepageSuggestions: kotlinx.coroutines.Job? = null
     private val remoteHomepageSuggestions = dev.ujhhgtg.via.search.RemoteSuggestions()
     private var toolbarSwipePreview = 0
@@ -884,7 +892,7 @@ class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.F
             }
         })
         restoring = true
-        val savedTabs = state?.getBundle("browser_tabs")
+        val savedTabs = restoredTabsState(state)
         if (savedTabs != null) tabs.restoreState(savedTabs)
         val incoming = BrowserIntentRouter { preferences.effectiveSearchUrl() }.resolve(host.intent, host.referrer, host.packageName)
         var askToRestore = emptyList<SessionTab>()
@@ -3530,8 +3538,37 @@ class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.F
 
     private fun launchForResult(intent: Intent, request: Int) { pendingRequest = request; activityResult.launch(intent) }
 
+    /**
+     * Restores what [onSaveInstanceState] wrote: the full state from its cache file, falling back
+     * to the metadata-only Bundle copy when the file is gone or came from another state version.
+     */
+    private fun restoredTabsState(state: Bundle?): Bundle? {
+        val name = state?.getString(TABS_STATE_FILE)
+        if (name != null && state.getInt(TABS_STATE_VERSION, 0) == BrowserInstanceState.VERSION) {
+            BrowserInstanceState.read(host, name)?.let { return it }
+        }
+        return state?.getBundle(TABS_STATE)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
-        if (::tabs.isInitialized) outState.putBundle("browser_tabs", tabs.saveState())
+        if (::tabs.isInitialized) {
+            // Engine session states serialize whole pages - one Gecko state can be hundreds of
+            // kilobytes - and the activity's state is delivered in a size-limited one-way Binder
+            // transaction. Keep the Bundle small: write the full state to a cache file and leave
+            // only its name plus a metadata fallback here (see BrowserInstanceState).
+            val name = instanceStateFile ?: BrowserInstanceState.newName().also { instanceStateFile = it }
+            val saved = BrowserInstanceState.write(host, name, tabs.saveState())
+            if (saved) {
+                outState.putString(TABS_STATE_FILE, name)
+                outState.putInt(TABS_STATE_VERSION, BrowserInstanceState.VERSION)
+            }
+            val metadata = tabs.saveState(includeEngineState = false)
+            when {
+                BrowserInstanceState.fitsInline(metadata) -> outState.putBundle(TABS_STATE, metadata)
+                saved -> Log.w("ViaSessions", "Tab metadata exceeds the instance state budget; restoring from the cache file")
+                else -> Log.w("ViaSessions", "Cannot save the browser tab state; tabs will not be restored")
+            }
+        }
         outState.putInt("pending_request", pendingRequest)
         super.onSaveInstanceState(outState)
     }
@@ -3582,6 +3619,8 @@ class BrowserFragment : Fragment(), BrowserMenuDialog.Host, dev.ujhhgtg.via.ui.F
         fileCallback?.cancel(); fileCallback = null
         pendingPermission?.deny(); pendingPermission = null
         if (::tabs.isInitialized) tabs.destroy()
+        // A finishing activity never reads its saved tab state again.
+        if (host.isFinishing) instanceStateFile?.let { BrowserInstanceState.delete(host, it) }
         // Captured Parcel state no longer needs a WebView; finish queued writes before releasing its database.
         worker.execute { database.close() }
         worker.shutdown()

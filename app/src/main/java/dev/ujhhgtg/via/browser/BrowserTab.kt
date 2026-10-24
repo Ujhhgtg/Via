@@ -30,8 +30,12 @@ class BrowserTab(
         if (title != null) this.title = title
     }
 
-    /** Saves both the engine's back-forward state and shell metadata into a caller-owned Bundle. */
-    fun saveState(): Bundle = Bundle().apply {
+    /**
+     * Saves the shell metadata, plus the engine's back-forward state when [includeEngineState].
+     * Without the engine state [restoreState] reports false and the tab reloads [requestedUrl];
+     * that metadata-only copy is what fits into the activity's size-limited instance state.
+     */
+    fun saveState(includeEngineState: Boolean = true): Bundle = Bundle().apply {
         putLong(KEY_ID, id)
         putString(KEY_SESSION_ID, sessionId)
         putString(KEY_REQUESTED_URL, requestedUrl)
@@ -39,7 +43,7 @@ class BrowserTab(
         putString(KEY_INTERNAL_DOCUMENT, internalDocumentUrl)
         putInt(KEY_SCROLL_X, page.scrollX)
         putInt(KEY_SCROLL_Y, page.scrollY)
-        putBundle(KEY_WEBVIEW, Bundle().also { page.saveState(it) })
+        if (includeEngineState) putBundle(KEY_WEBVIEW, Bundle().also { page.saveState(it) })
     }
 
     fun restoreState(state: Bundle): Boolean {

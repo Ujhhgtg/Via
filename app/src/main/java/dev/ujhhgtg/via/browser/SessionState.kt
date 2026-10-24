@@ -37,6 +37,9 @@ internal object SessionState {
     /** Whether a state tagged [engine] (null for files from before backends existed) belongs to [backend]. */
     internal fun writtenBy(engine: String?, backend: String): Boolean = (engine ?: LEGACY_ENGINE) == backend
 
+    /** Reads a Parcel-of-Bundle written by [write] without applying the session engine tag. */
+    fun readState(path: String?): Bundle? = readFile(path)
+
     private fun readFile(path: String?): Bundle? {
         if (path.isNullOrEmpty()) return null
         return try {

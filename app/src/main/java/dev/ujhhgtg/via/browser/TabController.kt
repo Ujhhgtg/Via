@@ -410,13 +410,23 @@ class TabController(
         tabs.keys.forEach { id -> controllers[id]?.applyNightTheme(night) }
     }
 
-    fun saveState(out: Bundle = Bundle()): Bundle = out.apply {
+    /**
+     * Writes the tab state into [out]. [includeEngineState] = false keeps shell metadata only:
+     * the activity's instance state travels through a size-limited Binder transaction, so the
+     * browser writes this bundle to a file and puts the metadata-only copy into that Bundle
+     * (see BrowserInstanceState).
+     */
+    fun saveState(out: Bundle = Bundle(), includeEngineState: Boolean = true): Bundle = out.apply {
         val ids = tabs.keys.toLongArray()
         putLongArray(KEY_IDS, ids)
         putLong(KEY_SELECTED, selectedId ?: -1L)
-        ids.forEach { id -> tabs[id]?.let { tab -> putBundle(KEY_TAB_PREFIX + id, tab.saveState().apply {
-            putBundle(KEY_ORIGINAL_SESSION, captureOriginalState(tab))
-        }) } }
+        ids.forEach { id ->
+            tabs[id]?.let { tab ->
+                putBundle(KEY_TAB_PREFIX + id, tab.saveState(includeEngineState).apply {
+                    if (includeEngineState) putBundle(KEY_ORIGINAL_SESSION, captureOriginalState(tab))
+                })
+            }
+        }
     }
 
     /** Capture on the UI thread, then call writeFiles on the persistence worker (c8.ua.N1). */
