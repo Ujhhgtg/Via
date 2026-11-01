@@ -259,6 +259,11 @@ class SettingsController(
         }
     }
 
+    /** Bookmark import/export entry points for the Material pages that replaced the dialog. */
+    fun startImportBookmarks() = importRequest()
+
+    fun startExportBookmarks() = exportRequest()
+
     private fun bookmarkTransfer() {
         ViaDialog(activity).title(R.string.import_or_export_bookmarks)
             .items(arrayOf(getString(R.string.export_bookmarks), getString(R.string.import_bookmarks)), onClick = { which ->

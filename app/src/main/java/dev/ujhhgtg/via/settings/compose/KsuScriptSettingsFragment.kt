@@ -78,7 +78,11 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
     }
 
     override fun topActions(): List<KsuTopAction> = buildList {
-        add(KsuTopAction(R.drawable.ic_ksu_add, getString(R.string.add_script)) { addMenu() })
+        add(KsuTopAction(R.drawable.ic_ksu_add, getString(R.string.add_script), menu = listOf(
+            KsuMenuAction(1, getString(R.string.add_script)),
+            KsuMenuAction(2, getString(R.string.import_script_from_url)),
+            KsuMenuAction(3, getString(R.string.import_script_from_file)),
+        )))
         if (scripts.any { it.downloadUrl != null }) {
             add(KsuTopAction(R.drawable.ic_ksu_sync, getString(R.string.update)) { updateScripts() })
         }
@@ -158,17 +162,12 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
         refresh()
     }
 
-    private fun addMenu() {
-        ViaDialog(requireActivity()).items(
-            arrayOf(getString(R.string.add_script), getString(R.string.import_script_from_url), getString(R.string.import_script_from_file)),
-            onClick = { item ->
-                when (item) {
-                    0 -> openEditor()
-                    1 -> importFromUrl()
-                    2 -> runCatching { importFile.launch(arrayOf("text/plain", "application/javascript", "text/javascript")) }
-                }
-            },
-        ).show()
+    override fun onTopMenuAction(action: KsuMenuAction) {
+        when (action.id) {
+            1 -> openEditor()
+            2 -> importFromUrl()
+            3 -> runCatching { importFile.launch(arrayOf("text/plain", "application/javascript", "text/javascript")) }
+        }
     }
 
     private fun importFromUrl() {

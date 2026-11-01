@@ -58,6 +58,19 @@ data class KsuSwitchNavRow(
     val actions: List<KsuMenuAction> = emptyList(),
 ) : KsuRow
 
+/** A form row with an inline text field (WebDAV, user agent, search provider, ...). */
+data class KsuInputRow(
+    override val key: Any,
+    override val icon: Int,
+    override val title: String,
+    override val summary: String? = null,
+    val value: String,
+    val placeholder: String? = null,
+    val isPassword: Boolean = false,
+    val keyboardNumeric: Boolean = false,
+    val enabled: Boolean = true,
+) : KsuRow
+
 /** A checkbox row, used by the pages that replaced the old multi-select dialogs. */
 data class KsuCheckRow(
     override val key: Any,
@@ -92,11 +105,12 @@ data class KsuToggleRow(
 /** One entry of a row's long-press menu, rendered with KernelSU's expressive menu. */
 data class KsuMenuAction(val id: Int, val label: String)
 
-/** A trailing top-bar action, such as the Scripts page's add and update entries. */
+/** A trailing top-bar action; a non-empty [menu] opens an expressive menu instead of clicking. */
 data class KsuTopAction(
     @DrawableRes val icon: Int,
     val description: String,
-    val onClick: () -> Unit,
+    val menu: List<KsuMenuAction> = emptyList(),
+    val onClick: () -> Unit = {},
 )
 
 /** A titled card of rows; a null title renders the card without a section header. */
@@ -118,6 +132,8 @@ fun KsuSettingsPage(
     onSelect: (KsuDropdownRow, Int) -> Unit = { _, _ -> },
     onAction: (KsuSwitchNavRow, KsuMenuAction) -> Unit = { _, _ -> },
     onCheck: (KsuCheckRow, Boolean) -> Unit = { _, _ -> },
+    onInput: (KsuInputRow, String) -> Unit = { _, _ -> },
+    onTopMenuAction: (KsuMenuAction) -> Unit = {},
     topActions: List<KsuTopAction> = emptyList(),
     header: (@Composable () -> Unit)? = null,
 ) {
@@ -132,11 +148,7 @@ fun KsuSettingsPage(
                     }
                 },
                 actions = {
-                    topActions.forEach { action ->
-                        IconButton(onClick = action.onClick) {
-                            Icon(painterResource(action.icon), action.description)
-                        }
-                    }
+                    topActions.forEach { action -> KsuTopBarAction(action, onTopMenuAction) }
                 },
                 colors = expressiveTopAppBarColors(),
                 windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
@@ -168,6 +180,17 @@ fun KsuSettingsPage(
                                     checked = row.checked,
                                     enabled = row.enabled,
                                     onCheckedChange = { onToggle(row, it) },
+                                )
+                                is KsuInputRow -> KsuInputItem(
+                                    icon = row.icon,
+                                    title = row.title,
+                                    summary = row.summary,
+                                    value = row.value,
+                                    placeholder = row.placeholder,
+                                    isPassword = row.isPassword,
+                                    keyboardNumeric = row.keyboardNumeric,
+                                    enabled = row.enabled,
+                                    onValueChange = { onInput(row, it) },
                                 )
                                 is KsuCheckRow -> KsuCheckItem(
                                     icon = row.icon,

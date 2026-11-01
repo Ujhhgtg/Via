@@ -38,7 +38,7 @@ class KsuAdvancedSettingsFragment : KsuPageFragment() {
     }
 
     override fun onRow(row: KsuRow) {
-        if (row.key == 6) ignoredSslWarnings()
+        if (row.key == 6) (requireActivity() as Shell).navigate(KsuSslWarningsSettingsFragment())
     }
 
     override fun onToggle(row: KsuToggleRow, checked: Boolean) {
@@ -63,11 +63,4 @@ class KsuAdvancedSettingsFragment : KsuPageFragment() {
         refresh()
     }
 
-    private fun ignoredSslWarnings() {
-        fun open() = (requireActivity() as Shell).navigate(KsuSslWarningsSettingsFragment())
-        if (preferences.ignoredSslWarning != 0) open()
-        else ViaDialog(requireActivity()).title(R.string.title_ignore_ssl_warnings).message(R.string.message_ignore_ssl_warnings)
-            .check(R.string.title_ignore_ssl_warnings_confirmation, false).checkRequired(true)
-            .positive(android.R.string.ok) { _, _ -> open() }.negative(android.R.string.cancel).show()
-    }
 }

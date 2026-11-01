@@ -67,7 +67,10 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
     }
 
     override fun topActions(): List<KsuTopAction> = buildList {
-        add(KsuTopAction(R.drawable.ic_ksu_add, getString(R.string.find_extensions)) { addMenu() })
+        add(KsuTopAction(R.drawable.ic_ksu_add, getString(R.string.find_extensions), menu = listOf(
+            KsuMenuAction(1, getString(R.string.find_extensions)),
+            KsuMenuAction(2, getString(R.string.install_extension_from_file)),
+        )))
         if (extensions.isNotEmpty()) add(KsuTopAction(R.drawable.ic_ksu_sync, getString(R.string.update)) { updateExtensions() })
     }
 
@@ -146,21 +149,6 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
         }
     }
 
-    private fun addMenu() {
-        ViaDialog(requireActivity()).items(
-            arrayOf(getString(R.string.find_extensions), getString(R.string.install_extension_from_file)),
-            onClick = { item ->
-                when (item) {
-                    0 -> (requireActivity() as Shell).openRecordFromRecords(AMO, 1)
-                    1 -> try {
-                        importFile.launch(arrayOf(ExtensionFiles.MIME, "application/zip", "application/octet-stream"))
-                    } catch (_: ActivityNotFoundException) {
-                        toast(R.string.toast_operation_failed)
-                    }
-                }
-            },
-        ).show()
-    }
 
     private fun updateExtensions() {
         if (updating) return
@@ -196,6 +184,17 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
     }
 
 
+    override fun onTopMenuAction(action: KsuMenuAction) {
+        when (action.id) {
+            1 -> (requireActivity() as Shell).openRecordFromRecords(AMO, 1)
+            2 -> try {
+                importFile.launch(arrayOf(ExtensionFiles.MIME, "application/zip", "application/octet-stream"))
+            } catch (_: ActivityNotFoundException) {
+                toast(R.string.toast_operation_failed)
+            }
+        }
+    }
+
     override fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) {
         val extension = extensions.firstOrNull { it.id == row.key } ?: return
         when (action.id) {
@@ -225,7 +224,7 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
         refresh()
     }
 
-    private fun openDetails(id: String) = (requireActivity() as Shell).navigate(ExtensionDetailsFragment.newInstance(id))
+    private fun openDetails(id: String) = (requireActivity() as Shell).navigate(KsuExtensionDetailsSettingsFragment.newInstance(id))
 
     private fun failed(error: ExtensionInstallError) {
         if (!isAdded) return

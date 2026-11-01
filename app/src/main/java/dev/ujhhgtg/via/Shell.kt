@@ -108,6 +108,10 @@ open class Shell : ViaActivity() {
             action == "settings_script" -> dev.ujhhgtg.via.settings.compose.KsuScriptSettingsFragment()
             action == "settings_extensions" -> dev.ujhhgtg.via.settings.compose.KsuExtensionSettingsFragment()
             action == "search_settings" -> dev.ujhhgtg.via.settings.compose.KsuSearchSettingsFragment()
+            action == "agent" -> dev.ujhhgtg.via.settings.compose.KsuUserAgentSettingsFragment()
+            action == "action_night" -> dev.ujhhgtg.via.settings.compose.KsuNightModeSettingsFragment()
+            action == "block_ads" -> dev.ujhhgtg.via.settings.compose.KsuBlockAdsSettingsFragment()
+            action == "settings_operation" -> dev.ujhhgtg.via.settings.compose.KsuGesturesSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)

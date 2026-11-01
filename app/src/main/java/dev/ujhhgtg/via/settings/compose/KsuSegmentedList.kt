@@ -4,6 +4,8 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,6 +39,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
@@ -375,6 +380,60 @@ fun KsuCheckItem(
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
         interactionSource = interactionSource,
+        content = { Text(title) },
+    )
+}
+
+/** A form row: title plus an inline single-line text field, like KernelSU's SegmentedTextField. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuInputItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    value: String,
+    placeholder: String? = null,
+    isPassword: Boolean = false,
+    keyboardNumeric: Boolean = false,
+    enabled: Boolean = true,
+    onValueChange: (String) -> Unit,
+) {
+    var text by remember(title) { mutableStateOf(value) }
+    SegmentedListItem(
+        shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+        enabled = enabled,
+        leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+        supportingContent = {
+            BasicTextField(
+                value = text,
+                onValueChange = { text = it; onValueChange(it) },
+                enabled = enabled,
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = when {
+                        keyboardNumeric -> KeyboardType.Number
+                        isPassword -> KeyboardType.Password
+                        else -> KeyboardType.Text
+                    },
+                ),
+                visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+                decorationBox = { inner ->
+                    Box {
+                        if (text.isEmpty() && placeholder != null) {
+                            Text(
+                                text = placeholder,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f),
+                            )
+                        }
+                        inner()
+                    }
+                },
+            )
+        },
+        verticalAlignment = Alignment.CenterVertically,
+        colors = defaultSegmentedColors(),
         content = { Text(title) },
     )
 }

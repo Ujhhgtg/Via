@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.Fragment
 import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.settings.SettingsSwipeBack
@@ -31,6 +30,9 @@ abstract class KsuPageFragment : Fragment() {
     @get:StringRes
     protected abstract val titleRes: Int
 
+    /** Overridable so detail pages can show, for example, an extension name. */
+    protected open fun pageTitle(): String = getString(titleRes)
+
     protected abstract fun groups(): List<KsuGroup>
 
     protected open fun topActions(): List<KsuTopAction> = emptyList()
@@ -47,6 +49,10 @@ abstract class KsuPageFragment : Fragment() {
 
     protected open fun onCheck(row: KsuCheckRow, checked: Boolean) = Unit
 
+    protected open fun onInput(row: KsuInputRow, text: String) = Unit
+
+    protected open fun onTopMenuAction(action: KsuMenuAction) = Unit
+
     /** Composable content rendered above the cards, e.g. the About page's version header. */
     protected open fun header(): (@Composable () -> Unit)? = null
 
@@ -62,7 +68,7 @@ abstract class KsuPageFragment : Fragment() {
                 val preferences = remember { BrowserPreferences(context) }
                 ViaKsuTheme(darkTheme = preferences.isNightMode) {
                     KsuSettingsPage(
-                        title = stringResource(titleRes),
+                        title = pageTitle(),
                         groups = remember(revisionKey) { groups() },
                         onBack = ::onBack,
                         onRowClick = ::onRow,
@@ -71,6 +77,8 @@ abstract class KsuPageFragment : Fragment() {
                         onSelect = ::onSelect,
                         onAction = ::onAction,
                         onCheck = ::onCheck,
+                        onInput = ::onInput,
+                        onTopMenuAction = ::onTopMenuAction,
                         topActions = remember(revisionKey) { topActions() },
                         header = header(),
                     )

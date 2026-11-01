@@ -25,8 +25,6 @@ import dev.ujhhgtg.via.Shell
 import dev.ujhhgtg.via.data.BrowserDatabase
 import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.search.SearchProviders
-import dev.ujhhgtg.via.settings.SearchProvidersFragment
-import dev.ujhhgtg.via.settings.SearchToolbarSettingsFragment
 import dev.ujhhgtg.via.ui.ViaToast
 import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import java.util.Date
@@ -55,6 +53,15 @@ class KsuSslWarningsSettingsFragment : KsuPageFragment() {
         R.drawable.ic_ksu_schedule,
         R.drawable.ic_ksu_error,
     )
+
+    override fun header(): (@Composable () -> Unit)? = {
+        Text(
+            text = getString(R.string.message_ignore_ssl_warnings),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 13.dp),
+        )
+    }
 
     override fun groups(): List<KsuGroup> {
         flags = preferences.ignoredSslWarning
@@ -206,9 +213,9 @@ class KsuSearchSettingsFragment : KsuPageFragment() {
     override fun onRow(row: KsuRow) {
         val shell = requireActivity() as Shell
         when (row.key) {
-            1 -> shell.navigate(SearchProvidersFragment())
+            1 -> shell.navigate(KsuSearchProvidersSettingsFragment())
             2 -> shell.navigate(KsuSearchSuggestionsSettingsFragment())
-            3 -> shell.navigate(SearchToolbarSettingsFragment())
+            3 -> shell.navigate(KsuSearchToolbarSettingsFragment())
         }
     }
 }

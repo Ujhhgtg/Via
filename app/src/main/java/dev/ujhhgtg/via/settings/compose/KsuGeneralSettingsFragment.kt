@@ -58,6 +58,12 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         parentFragmentManager.setFragmentResultListener(KsuExportSectionsSettingsFragment.RESULT, viewLifecycleOwner) { _, result ->
             handlers.exportBackupWithSections(result.getInt("mask"))
         }
+        parentFragmentManager.setFragmentResultListener(KsuBookmarkTransferSettingsFragment.RESULT, viewLifecycleOwner) { _, result ->
+            when (result.getString("action")) {
+                "export" -> handlers.startExportBookmarks()
+                "import" -> handlers.startImportBookmarks()
+            }
+        }
         refreshExternalApps()
         refreshAgentTitle()
     }
@@ -140,19 +146,19 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
     override fun onRow(row: KsuRow) {
         val shell = requireActivity() as Shell
         when (row.key) {
-            2 -> shell.openPage("agent")
+            2 -> shell.navigate(KsuUserAgentSettingsFragment())
             3 -> shell.navigate(KsuClearDataSettingsFragment())
-            4 -> shell.openPage("block_ads")
+            4 -> shell.navigate(KsuBlockAdsSettingsFragment())
             5 -> shell.openPage("site_conf")
-            6 -> shell.openPage("action_night")
+            6 -> shell.navigate(KsuNightModeSettingsFragment())
             9 -> handlers.route("language")
             10 -> handlers.route("home")
             13 -> handlers.route("orientation")
             14 -> handlers.route("download")
             15 -> handlers.route("addon_download")
             18 -> shell.navigate(KsuClearOnExitSettingsFragment())
-            19 -> shell.openPage("settings_operation")
-            20 -> handlers.route("import_or_export_bookmarks")
+            19 -> shell.navigate(KsuGesturesSettingsFragment())
+            20 -> shell.navigate(KsuBookmarkTransferSettingsFragment())
             21 -> handlers.route("import_data")
             22 -> shell.navigate(KsuExportSectionsSettingsFragment())
             23 -> handlers.route("restore_tabs")
