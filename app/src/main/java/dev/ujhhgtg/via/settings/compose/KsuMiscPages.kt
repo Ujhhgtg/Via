@@ -222,6 +222,8 @@ class KsuNightModeSettingsFragment : KsuPageFragment() {
 class KsuNightFilterSettingsFragment : KsuPageFragment() {
     override val titleRes = R.string.night_filter_for_web_contents
 
+    override fun swipeBackEnabled(): Boolean = false
+
     private val preferences by lazy { BrowserPreferences(requireContext()) }
 
     override fun groups(): List<KsuGroup> = emptyList()

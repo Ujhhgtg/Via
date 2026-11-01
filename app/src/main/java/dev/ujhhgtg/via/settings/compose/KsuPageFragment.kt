@@ -64,6 +64,10 @@ abstract class KsuPageFragment : Fragment() {
 
     protected open fun onCheck(row: KsuCheckRow, checked: Boolean) = Unit
 
+    protected open fun onRadio(row: KsuRadioRow) = Unit
+
+    protected open fun onRadioAction(row: KsuRadioRow, action: KsuMenuAction) = Unit
+
     protected open fun onInput(row: KsuInputRow, text: String) = Unit
 
     protected open fun onTopMenuAction(action: KsuMenuAction) = Unit
@@ -73,6 +77,9 @@ abstract class KsuPageFragment : Fragment() {
 
     /** Re-reads the page's rows, e.g. after a switch or a preference-backed title changed. */
     protected fun refresh() { revision++ }
+
+    /** Pages with their own horizontal drag control (sliders) turn the swipe-back gesture off. */
+    protected open fun swipeBackEnabled(): Boolean = true
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val context = requireContext()
@@ -92,6 +99,8 @@ abstract class KsuPageFragment : Fragment() {
                         onSelect = ::onSelect,
                         onAction = ::onAction,
                         onCheck = ::onCheck,
+                        onRadio = ::onRadio,
+                        onRadioAction = ::onRadioAction,
                         onInput = ::onInput,
                         onTopMenuAction = ::onTopMenuAction,
                         topActions = remember(revisionKey) { topActions() },
@@ -115,6 +124,7 @@ abstract class KsuPageFragment : Fragment() {
             attach(this@KsuPageFragment, content)
             setEdgeSize(-2)
             setScrollThresholdSize(context.dp(200f).toFloat())
+            setGestureEnabled(swipeBackEnabled())
         }
     }
 

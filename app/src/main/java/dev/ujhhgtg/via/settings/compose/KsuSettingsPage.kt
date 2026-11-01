@@ -72,6 +72,17 @@ data class KsuInputRow(
     val enabled: Boolean = true,
 ) : KsuRow
 
+/** A single-choice row: a leading radio button, optional icon and long-press actions. */
+data class KsuRadioRow(
+    override val key: Any,
+    @DrawableRes override val icon: Int,
+    override val title: String,
+    override val summary: String? = null,
+    val selected: Boolean,
+    val enabled: Boolean = true,
+    val actions: List<KsuMenuAction> = emptyList(),
+) : KsuRow
+
 /** A checkbox row, used by the pages that replaced the old multi-select dialogs. */
 data class KsuCheckRow(
     override val key: Any,
@@ -133,6 +144,8 @@ fun KsuSettingsPage(
     onSelect: (KsuDropdownRow, Int) -> Unit = { _, _ -> },
     onAction: (KsuSwitchNavRow, KsuMenuAction) -> Unit = { _, _ -> },
     onCheck: (KsuCheckRow, Boolean) -> Unit = { _, _ -> },
+    onRadio: (KsuRadioRow) -> Unit = {},
+    onRadioAction: (KsuRadioRow, KsuMenuAction) -> Unit = { _, _ -> },
     onInput: (KsuInputRow, String) -> Unit = { _, _ -> },
     onTopMenuAction: (KsuMenuAction) -> Unit = {},
     topActions: List<KsuTopAction> = emptyList(),
@@ -181,6 +194,16 @@ fun KsuSettingsPage(
                                     checked = row.checked,
                                     enabled = row.enabled,
                                     onCheckedChange = { onToggle(row, it) },
+                                )
+                                is KsuRadioRow -> KsuRadioItem(
+                                    icon = row.icon.takeIf { it != 0 },
+                                    title = row.title,
+                                    summary = row.summary,
+                                    selected = row.selected,
+                                    enabled = row.enabled,
+                                    actions = row.actions,
+                                    onClick = { onRadio(row) },
+                                    onAction = { onRadioAction(row, it) },
                                 )
                                 is KsuInputRow -> KsuInputItem(
                                     icon = row.icon,

@@ -80,6 +80,8 @@ class KsuReaderColorSettingsFragment : KsuPageFragment() {
 /** The reader text size slider on its own page. */
 class KsuReaderSizeSettingsFragment : KsuPageFragment() {
     override val titleRes = R.string.size
+
+    override fun swipeBackEnabled(): Boolean = false
     private val preferences by lazy { BrowserPreferences(requireContext()) }
 
     override fun groups(): List<KsuGroup> = emptyList()

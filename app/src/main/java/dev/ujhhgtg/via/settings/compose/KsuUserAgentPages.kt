@@ -68,11 +68,12 @@ class KsuUserAgentSettingsFragment : KsuPageFragment() {
 
     override fun groups(): List<KsuGroup> {
         val agentRows = agents.map { agent ->
-            KsuSwitchNavRow(
+            KsuRadioRow(
                 key = agent.id,
-                icon = agentIcon(agent),
+                // Only the default entry keeps an icon; the choice itself is a radio button.
+                icon = if (agent.id == 0) agentIcon(agent) else 0,
                 title = agent.title.orEmpty(),
-                checked = agent.id == preferences.userAgentChoice,
+                selected = agent.id == preferences.userAgentChoice,
                 // Only saved entries carry the edit/delete commands, as the classic long press did.
                 actions = if (agent.id > 0) listOf(
                     KsuMenuAction(ACTION_EDIT, getString(R.string.action_edit)),
@@ -116,18 +117,12 @@ class KsuUserAgentSettingsFragment : KsuPageFragment() {
         KsuTopAction(R.drawable.ic_ksu_add, getString(R.string.action_new)) { edit(0) },
     )
 
-    override fun onRow(row: KsuRow) {
+    override fun onRadio(row: KsuRadioRow) {
         val id = row.key as? Int ?: return
         agents.firstOrNull { it.id == id }?.let { if (it.id != preferences.userAgentChoice) select(it) }
     }
 
-    override fun onSwitchRow(row: KsuSwitchNavRow, checked: Boolean) {
-        // The switch is just a second way to tap a choice row, like the classic checkmark row.
-        val id = row.key as? Int ?: return
-        agents.firstOrNull { it.id == id }?.let { if (it.id != preferences.userAgentChoice) select(it) }
-    }
-
-    override fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) {
+    override fun onRadioAction(row: KsuRadioRow, action: KsuMenuAction) {
         val id = row.key as? Int ?: return
         when (action.id) {
             ACTION_EDIT -> edit(id)

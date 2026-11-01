@@ -49,6 +49,7 @@ fun KsuExpressiveMenu(
     anchorOffset: IntOffset = IntOffset.Zero,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    if (!expanded) return
     Box(
         modifier = Modifier.layout { measurable, constraints ->
             val placeable = measurable.measure(Constraints())
@@ -58,7 +59,7 @@ fun KsuExpressiveMenu(
             }
         },
     ) {
-        DropdownMenuPopup(expanded = expanded, onDismissRequest = onDismissRequest) {
+        DropdownMenuPopup(expanded = true, onDismissRequest = onDismissRequest) {
             DropdownMenuGroup(
                 shapes = MenuDefaults.groupShape(index = 0, count = 1),
                 modifier = Modifier.verticalScroll(rememberScrollState()),

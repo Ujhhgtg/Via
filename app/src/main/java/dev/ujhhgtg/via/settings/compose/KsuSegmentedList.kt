@@ -4,6 +4,11 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Column
@@ -18,6 +23,7 @@ import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Switch
@@ -409,42 +415,127 @@ fun KsuInputItem(
     onValueChange: (String) -> Unit,
 ) {
     var text by remember(title) { mutableStateOf(value) }
+    val keyboardOptions = KeyboardOptions(
+        keyboardType = when {
+            keyboardNumeric -> KeyboardType.Number
+            isPassword -> KeyboardType.Password
+            else -> KeyboardType.Text
+        },
+    )
+    val transformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
     SegmentedListItem(
         shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
         enabled = enabled,
         leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
-        supportingContent = {
-            BasicTextField(
-                value = text,
-                onValueChange = { text = it; onValueChange(it) },
-                enabled = enabled,
-                singleLine = !multiline,
-                maxLines = if (multiline) 8 else 1,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = when {
-                        keyboardNumeric -> KeyboardType.Number
-                        isPassword -> KeyboardType.Password
-                        else -> KeyboardType.Text
-                    },
-                ),
-                visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                decorationBox = { inner ->
-                    Box {
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = if (multiline) 12.dp else 8.dp),
+        supportingContent = summary?.let { { Text(it) } },
+        verticalAlignment = Alignment.CenterVertically,
+        colors = defaultSegmentedColors(),
+        content = {
+            if (multiline) {
+                Column {
+                    Text(title)
+                    BasicTextField(
+                        value = text,
+                        onValueChange = { text = it; onValueChange(it) },
+                        enabled = enabled,
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                        keyboardOptions = keyboardOptions,
+                        visualTransformation = transformation,
+                        minLines = 3,
+                        maxLines = 10,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                    )
+                }
+            } else {
+                // Single-line forms keep the title and the field on one row, so an empty field
+                // does not inflate the row to a two-line list item.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(title)
+                    Spacer(Modifier.width(16.dp))
+                    Box(Modifier.weight(1f)) {
                         if (text.isEmpty() && placeholder != null) {
                             Text(
                                 text = placeholder,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
-                        inner()
+                        BasicTextField(
+                            value = text,
+                            onValueChange = { text = it; onValueChange(it) },
+                            enabled = enabled,
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                            keyboardOptions = keyboardOptions,
+                            visualTransformation = transformation,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
-                },
-            )
+                }
+            }
         },
-        verticalAlignment = Alignment.CenterVertically,
-        colors = defaultSegmentedColors(),
-        content = { Text(title) },
     )
+}
+
+/** A single-choice row: leading radio button (plus an optional icon) and long-press actions. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuRadioItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    selected: Boolean,
+    enabled: Boolean = true,
+    actions: List<KsuMenuAction> = emptyList(),
+    onClick: () -> Unit,
+    onAction: (KsuMenuAction) -> Unit = {},
+) {
+    val haptic = LocalHapticFeedback.current
+    var menuExpanded by remember { mutableStateOf(false) }
+    var menuAnchor by remember { mutableStateOf(IntOffset.Zero) }
+    Box(Modifier.trackPressPosition { menuAnchor = it.round() }) {
+        SegmentedListItem(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                onClick()
+            },
+            onLongClick = actions.takeIf { it.isNotEmpty() }?.let {
+                {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    menuExpanded = true
+                }
+            },
+            shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+            enabled = enabled,
+            leadingContent = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (icon != null) {
+                        Icon(painterResource(icon), contentDescription = null)
+                        Spacer(Modifier.width(16.dp))
+                    }
+                    RadioButton(selected = selected, onClick = null, enabled = enabled)
+                }
+            },
+            supportingContent = summary?.let { { Text(it) } },
+            verticalAlignment = Alignment.CenterVertically,
+            colors = defaultSegmentedColors(),
+            content = { Text(title) },
+        )
+        if (actions.isNotEmpty()) {
+            KsuExpressiveMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorOffset = menuAnchor) {
+                actions.forEachIndexed { index, action ->
+                    DropdownMenuItem(
+                        text = { Text(action.label) },
+                        onClick = { menuExpanded = false; onAction(action) },
+                        shape = MenuDefaults.itemShape(index = index, count = actions.size).shape,
+                    )
+                }
+            }
+        }
+    }
 }

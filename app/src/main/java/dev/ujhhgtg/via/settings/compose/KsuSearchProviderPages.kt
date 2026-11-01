@@ -59,12 +59,12 @@ class KsuSearchProvidersSettingsFragment : KsuPageFragment() {
     override fun groups(): List<KsuGroup> {
         val shortcuts = searchProviders().shortcuts()
         val rows = searchProviders().list().map { provider ->
-            KsuSwitchNavRow(
+            KsuRadioRow(
                 key = provider.id,
                 icon = R.drawable.ic_ksu_search,
                 title = provider.name,
                 summary = shortcuts[provider.id]?.takeIf { it.isNotEmpty() },
-                checked = provider.id == preferences.searchMode,
+                selected = provider.id == preferences.searchMode,
                 // Built-ins only opened the editor on long press; custom ones get edit/delete.
                 actions = buildList {
                     add(KsuMenuAction(ACTION_EDIT, getString(R.string.action_edit)))
@@ -91,12 +91,12 @@ class KsuSearchProvidersSettingsFragment : KsuPageFragment() {
         (row.key as? Int)?.let { select(it) }
     }
 
-    override fun onSwitchRow(row: KsuSwitchNavRow, checked: Boolean) {
-        // Tapping a row (or its switch) always makes that engine the default, like the classic page.
+    override fun onRadio(row: KsuRadioRow) {
+        // Tapping a row always makes that engine the default, like the classic page.
         (row.key as? Int)?.let { select(it) }
     }
 
-    override fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) {
+    override fun onRadioAction(row: KsuRadioRow, action: KsuMenuAction) {
         val id = row.key as? Int ?: return
         when (action.id) {
             ACTION_EDIT -> edit(id)
