@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -339,4 +340,41 @@ fun KsuDropdownItem(
             }
         }
     }
+}
+
+/** A checkbox row, mirroring KernelSU's SegmentedCheckboxItem. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuCheckItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    SegmentedListItem(
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            onCheckedChange(!checked)
+        },
+        shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+        enabled = enabled,
+        leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+        trailingContent = {
+            Checkbox(
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = null,
+                interactionSource = interactionSource,
+            )
+        },
+        supportingContent = summary?.let { { Text(it) } },
+        verticalAlignment = Alignment.CenterVertically,
+        colors = defaultSegmentedColors(),
+        interactionSource = interactionSource,
+        content = { Text(title) },
+    )
 }

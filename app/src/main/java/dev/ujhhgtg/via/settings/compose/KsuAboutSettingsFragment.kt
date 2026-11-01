@@ -19,8 +19,6 @@ import androidx.core.net.toUri
 import dev.ujhhgtg.via.BuildConfig
 import dev.ujhhgtg.via.R
 import dev.ujhhgtg.via.Shell
-import dev.ujhhgtg.via.settings.DebuggingInfoFragment
-import dev.ujhhgtg.via.settings.OpenSourceLicensesFragment
 import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import java.util.Locale
 
@@ -40,7 +38,7 @@ class KsuAboutSettingsFragment : KsuPageFragment() {
                 contentDescription = null,
                 modifier = Modifier
                     .size(72.dp)
-                    .clickable { (requireActivity() as Shell).navigate(DebuggingInfoFragment()) },
+                    .clickable { (requireActivity() as Shell).navigate(KsuDebuggingInfoSettingsFragment()) },
             )
             Text(
                 text = getString(R.string.app_name),
@@ -68,7 +66,7 @@ class KsuAboutSettingsFragment : KsuPageFragment() {
 
     override fun onRow(row: KsuRow) {
         when (row.key) {
-            1 -> (requireActivity() as Shell).navigate(OpenSourceLicensesFragment())
+            1 -> (requireActivity() as Shell).navigate(KsuLicensesSettingsFragment())
             4 -> runCatching { startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/Ujhhgtg/Via".toUri())) }
         }
     }

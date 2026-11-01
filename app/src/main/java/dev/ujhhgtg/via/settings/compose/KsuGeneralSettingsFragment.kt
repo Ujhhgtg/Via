@@ -55,6 +55,9 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         pendingRequest = savedInstanceState?.getInt("pending_request") ?: 0
         requireContext().getSharedPreferences("settings", Context.MODE_PRIVATE)
             .registerOnSharedPreferenceChangeListener(preferenceChanged)
+        parentFragmentManager.setFragmentResultListener(KsuExportSectionsSettingsFragment.RESULT, viewLifecycleOwner) { _, result ->
+            handlers.exportBackupWithSections(result.getInt("mask"))
+        }
         refreshExternalApps()
         refreshAgentTitle()
     }
@@ -138,7 +141,7 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         val shell = requireActivity() as Shell
         when (row.key) {
             2 -> shell.openPage("agent")
-            3 -> handlers.route("clear_data")
+            3 -> shell.navigate(KsuClearDataSettingsFragment())
             4 -> shell.openPage("block_ads")
             5 -> shell.openPage("site_conf")
             6 -> shell.openPage("action_night")
@@ -147,18 +150,18 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
             13 -> handlers.route("orientation")
             14 -> handlers.route("download")
             15 -> handlers.route("addon_download")
-            18 -> handlers.route("clear_data_on_exit")
+            18 -> shell.navigate(KsuClearOnExitSettingsFragment())
             19 -> shell.openPage("settings_operation")
             20 -> handlers.route("import_or_export_bookmarks")
             21 -> handlers.route("import_data")
-            22 -> handlers.route("export_data")
+            22 -> shell.navigate(KsuExportSectionsSettingsFragment())
             23 -> handlers.route("restore_tabs")
             24 -> handlers.route("setting_default")
             26 -> shell.openPage("user_syns")
             27 -> handlers.route("external_video_player")
             28 -> shell.openPage("customize_menu")
             30 -> shell.openPage("reader_mode")
-            31 -> shell.openPage("search_settings")
+            31 -> shell.navigate(KsuSearchSettingsFragment())
             32 -> shell.openPage("toolbars_settings")
             35 -> shell.openPage("font")
             36 -> shell.openPage("password_manager")

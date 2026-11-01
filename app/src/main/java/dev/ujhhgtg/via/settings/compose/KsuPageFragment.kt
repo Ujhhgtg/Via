@@ -45,6 +45,8 @@ abstract class KsuPageFragment : Fragment() {
 
     protected open fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) = Unit
 
+    protected open fun onCheck(row: KsuCheckRow, checked: Boolean) = Unit
+
     /** Composable content rendered above the cards, e.g. the About page's version header. */
     protected open fun header(): (@Composable () -> Unit)? = null
 
@@ -68,6 +70,7 @@ abstract class KsuPageFragment : Fragment() {
                         onSwitchRow = ::onSwitchRow,
                         onSelect = ::onSelect,
                         onAction = ::onAction,
+                        onCheck = ::onCheck,
                         topActions = remember(revisionKey) { topActions() },
                         header = header(),
                     )

@@ -58,6 +58,16 @@ data class KsuSwitchNavRow(
     val actions: List<KsuMenuAction> = emptyList(),
 ) : KsuRow
 
+/** A checkbox row, used by the pages that replaced the old multi-select dialogs. */
+data class KsuCheckRow(
+    override val key: Any,
+    override val icon: Int,
+    override val title: String,
+    override val summary: String? = null,
+    val checked: Boolean,
+    val enabled: Boolean = true,
+) : KsuRow
+
 /** A row that opens KernelSU's expressive selection menu and shows the current choice. */
 data class KsuDropdownRow(
     override val key: Any,
@@ -107,6 +117,7 @@ fun KsuSettingsPage(
     onSwitchRow: (KsuSwitchNavRow, Boolean) -> Unit = { _, _ -> },
     onSelect: (KsuDropdownRow, Int) -> Unit = { _, _ -> },
     onAction: (KsuSwitchNavRow, KsuMenuAction) -> Unit = { _, _ -> },
+    onCheck: (KsuCheckRow, Boolean) -> Unit = { _, _ -> },
     topActions: List<KsuTopAction> = emptyList(),
     header: (@Composable () -> Unit)? = null,
 ) {
@@ -157,6 +168,14 @@ fun KsuSettingsPage(
                                     checked = row.checked,
                                     enabled = row.enabled,
                                     onCheckedChange = { onToggle(row, it) },
+                                )
+                                is KsuCheckRow -> KsuCheckItem(
+                                    icon = row.icon,
+                                    title = row.title,
+                                    summary = row.summary,
+                                    checked = row.checked,
+                                    enabled = row.enabled,
+                                    onCheckedChange = { onCheck(row, it) },
                                 )
                                 is KsuDropdownRow -> KsuDropdownItem(
                                     icon = row.icon,

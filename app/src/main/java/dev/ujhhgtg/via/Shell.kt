@@ -107,6 +107,7 @@ open class Shell : ViaActivity() {
             action == "settings_about" -> dev.ujhhgtg.via.settings.compose.KsuAboutSettingsFragment()
             action == "settings_script" -> dev.ujhhgtg.via.settings.compose.KsuScriptSettingsFragment()
             action == "settings_extensions" -> dev.ujhhgtg.via.settings.compose.KsuExtensionSettingsFragment()
+            action == "search_settings" -> dev.ujhhgtg.via.settings.compose.KsuSearchSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)

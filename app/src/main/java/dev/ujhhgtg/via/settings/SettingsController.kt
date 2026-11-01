@@ -307,20 +307,25 @@ class SettingsController(
             .negative(android.R.string.cancel).positive(android.R.string.ok) { _, result ->
                 val selected = result.selected ?: return@positive
                 if (selected.isEmpty()) return@positive
-                backupSections = selected.fold(0) { mask, index -> mask or masks[index] }
-                if (backupSections and 32 != 0 && PasswordRepository.get(this).list().isEmpty()) backupSections = backupSections and 32.inv()
-                if (backupSections == 0) return@positive
-                backupPassword = null
-                if (backupSections and 32 == 0) exportBackupRequest()
-                else {
-                    awaitingAuthentication = true
-                    passwordAuthenticator.authenticate(getString(R.string.export_data), getString(R.string.unlock_device_to_export_data),
-                        onCancel = { awaitingAuthentication = false }) {
-                        awaitingAuthentication = false
-                        backupPasswordDialog(exporting = true) { password -> backupPassword = password; exportBackupRequest() }
-                    }
-                }
+                exportBackupWithSections(selected.fold(0) { mask, index -> mask or masks[index] })
             }.show()
+    }
+
+    /** Continues the export flow with sections chosen on the Material selection page. */
+    fun exportBackupWithSections(sections: Int) {
+        backupSections = sections
+        if (backupSections and 32 != 0 && PasswordRepository.get(this).list().isEmpty()) backupSections = backupSections and 32.inv()
+        if (backupSections == 0) return
+        backupPassword = null
+        if (backupSections and 32 == 0) exportBackupRequest()
+        else {
+            awaitingAuthentication = true
+            passwordAuthenticator.authenticate(getString(R.string.export_data), getString(R.string.unlock_device_to_export_data),
+                onCancel = { awaitingAuthentication = false }) {
+                awaitingAuthentication = false
+                backupPasswordDialog(exporting = true) { password -> backupPassword = password; exportBackupRequest() }
+            }
+        }
     }
 
     private fun backupPasswordDialog(exporting: Boolean, accepted: (String) -> Unit) {

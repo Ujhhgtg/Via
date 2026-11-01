@@ -5,7 +5,6 @@ import dev.ujhhgtg.via.Shell
 import dev.ujhhgtg.via.common.GeneratedDocumentState
 import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.settings.SettingsSwipeBack
-import dev.ujhhgtg.via.settings.SslWarningsSettingsFragment
 import dev.ujhhgtg.via.ui.dialog.ViaDialog
 
 /** hb.z: the classic Advanced page, ported row for row with Material icons. */
@@ -65,7 +64,7 @@ class KsuAdvancedSettingsFragment : KsuPageFragment() {
     }
 
     private fun ignoredSslWarnings() {
-        fun open() = (requireActivity() as Shell).navigate(SslWarningsSettingsFragment())
+        fun open() = (requireActivity() as Shell).navigate(KsuSslWarningsSettingsFragment())
         if (preferences.ignoredSslWarning != 0) open()
         else ViaDialog(requireActivity()).title(R.string.title_ignore_ssl_warnings).message(R.string.message_ignore_ssl_warnings)
             .check(R.string.title_ignore_ssl_warnings_confirmation, false).checkRequired(true)
