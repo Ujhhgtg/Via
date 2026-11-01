@@ -3,8 +3,6 @@ package dev.ujhhgtg.via.settings.compose
 import dev.ujhhgtg.via.R
 import dev.ujhhgtg.via.Shell
 import dev.ujhhgtg.via.data.BrowserPreferences
-import dev.ujhhgtg.via.browser.filter.CustomFiltersFragment
-import dev.ujhhgtg.via.settings.FilterSubscriptionsFragment
 import dev.ujhhgtg.via.ui.behavior.BehaviorPreferences
 
 /** hb.y0's ad-blocking home: the two switches, the built-in filter toggle and the filter pages. */
@@ -37,8 +35,8 @@ class KsuBlockAdsSettingsFragment : KsuPageFragment() {
     override fun onRow(row: KsuRow) {
         val shell = requireActivity() as Shell
         when (row.key) {
-            3 -> shell.navigate(CustomFiltersFragment())
-            4 -> shell.navigate(FilterSubscriptionsFragment())
+            3 -> shell.navigate(KsuCustomFiltersSettingsFragment())
+            4 -> shell.navigate(KsuFilterSubscriptionsSettingsFragment())
         }
     }
 

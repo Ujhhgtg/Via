@@ -1102,4 +1102,8 @@
     <string name="settings_group_browsing">Browsing</string>
     <string name="settings_group_data">Data</string>
     <string name="settings_group_system">System</string>
+    <string name="action_show">Shown</string>
+    <string name="action_hide">Hidden</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
 </resources>

@@ -1047,4 +1047,8 @@
     <string name="settings_group_browsing">瀏覽</string>
     <string name="settings_group_data">資料</string>
     <string name="settings_group_system">系統</string>
+    <string name="action_show">已顯示</string>
+    <string name="action_hide">已隱藏</string>
+    <string name="move_up">上移</string>
+    <string name="move_down">下移</string>
 </resources>

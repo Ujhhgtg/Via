@@ -16,8 +16,6 @@ import dev.ujhhgtg.via.browser.script.ScriptManager
 import dev.ujhhgtg.via.browser.script.ScriptStore
 import dev.ujhhgtg.via.browser.script.UserScript
 import dev.ujhhgtg.via.data.BrowserPreferences
-import dev.ujhhgtg.via.settings.ScriptEditorFragment
-import dev.ujhhgtg.via.settings.ScriptDetailsFragment
 import dev.ujhhgtg.via.ui.ViaToast
 import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import java.io.InputStream
@@ -60,11 +58,7 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
         store = ScriptStore(requireContext())
         manager = ScriptManager(store)
         installer = ScriptInstaller(this)
-        parentFragmentManager.setFragmentResultListener(ScriptEditorFragment.RESULT, viewLifecycleOwner) { key, result ->
-            parentFragmentManager.clearFragmentResult(key)
-            refreshSavedScript(result.getInt("id"))
-        }
-        parentFragmentManager.setFragmentResultListener(ScriptDetailsFragment.RESULT, viewLifecycleOwner) { key, result ->
+        parentFragmentManager.setFragmentResultListener(KsuScriptEditorSettingsFragment.RESULT, viewLifecycleOwner) { key, result ->
             parentFragmentManager.clearFragmentResult(key)
             refreshSavedScript(result.getInt("id"))
         }
@@ -204,14 +198,14 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
     }
 
     private fun openEditor() {
-        parentFragmentManager.setFragmentResultListener(ScriptEditorFragment.RESULT, viewLifecycleOwner) { key, result ->
+        parentFragmentManager.setFragmentResultListener(KsuScriptEditorSettingsFragment.RESULT, viewLifecycleOwner) { key, result ->
             parentFragmentManager.clearFragmentResult(key)
             refreshSavedScript(result.getInt("id"))
         }
-        (requireActivity() as Shell).navigate(ScriptEditorFragment.newInstance(-1))
+        (requireActivity() as Shell).navigate(KsuScriptEditorSettingsFragment.edit(-1))
     }
 
-    private fun openDetails(id: Int) = (requireActivity() as Shell).navigate(ScriptDetailsFragment.newInstance(id))
+    private fun openDetails(id: Int) = (requireActivity() as Shell).navigate(KsuScriptDetailsSettingsFragment.newInstance(id))
 
 
     override fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) {

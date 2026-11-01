@@ -117,6 +117,8 @@ open class Shell : ViaActivity() {
             action == "customize_context_menu" -> dev.ujhhgtg.via.settings.compose.KsuContextMenuSettingsFragment()
             action == "reader_mode" -> dev.ujhhgtg.via.settings.compose.KsuReaderSettingsFragment()
             action == "toolbars_settings" -> dev.ujhhgtg.via.settings.compose.KsuToolbarSettingsFragment()
+            action == "customize_menu" -> dev.ujhhgtg.via.settings.compose.KsuMenuCustomizationSettingsFragment()
+            action == "site_conf" -> dev.ujhhgtg.via.settings.compose.KsuSiteConfSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)
