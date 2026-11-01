@@ -119,6 +119,7 @@ open class Shell : ViaActivity() {
             action == "toolbars_settings" -> dev.ujhhgtg.via.settings.compose.KsuToolbarSettingsFragment()
             action == "customize_menu" -> dev.ujhhgtg.via.settings.compose.KsuMenuCustomizationSettingsFragment()
             action == "site_conf" -> dev.ujhhgtg.via.settings.compose.KsuSiteConfSettingsFragment()
+            action == "user_syns" -> dev.ujhhgtg.via.settings.compose.KsuSyncSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)

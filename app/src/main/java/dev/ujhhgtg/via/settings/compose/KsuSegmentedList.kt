@@ -43,7 +43,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.unit.round
 import dev.ujhhgtg.via.R
 
@@ -130,10 +133,16 @@ fun KsuNavItem(
         leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
         trailingContent = value?.takeIf { it.isNotEmpty() }?.let {
             {
+                // Keep the trailing value from eating the headline's width: a long value used to
+                // squeeze titles like "搜索建议" into one character per line.
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.End,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 132.dp),
                 )
             }
         },

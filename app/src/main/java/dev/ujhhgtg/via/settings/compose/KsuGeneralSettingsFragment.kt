@@ -128,7 +128,7 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
                     value = getString(R.string.player_system_sharing), enabled = false),
                 KsuNavRow(20, R.drawable.ic_ksu_bookmark, getString(R.string.import_or_export_bookmarks)),
                 KsuNavRow(21, R.drawable.ic_ksu_upload_file, getString(R.string.import_data)),
-                KsuNavRow(22, R.drawable.ic_ksu_save_alt, getString(R.string.export_data), value = getString(R.string.export_data_description)),
+                KsuNavRow(22, R.drawable.ic_ksu_save_alt, getString(R.string.export_data), summary = getString(R.string.export_data_description)),
                 KsuDropdownRow(23, R.drawable.ic_ksu_restore, getString(R.string.restore_tabs),
                     options = restored.map(::getString), selectedIndex = preferences.restoreClosedTabs.coerceIn(0, 2)),
                 KsuToggleRow(33, R.drawable.ic_ksu_undo, getString(R.string.show_toast_to_undo_closing_tab),
@@ -163,7 +163,7 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
             22 -> shell.navigate(KsuExportSectionsSettingsFragment())
             23 -> handlers.route("restore_tabs")
             24 -> handlers.route("setting_default")
-            26 -> shell.openPage("user_syns")
+            26 -> shell.navigate(KsuSyncSettingsFragment())
             27 -> handlers.route("external_video_player")
             28 -> shell.navigate(KsuMenuCustomizationSettingsFragment())
             30 -> shell.navigate(KsuReaderSettingsFragment())
