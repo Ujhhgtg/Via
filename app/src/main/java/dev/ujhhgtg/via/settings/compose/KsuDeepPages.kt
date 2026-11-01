@@ -26,7 +26,6 @@ import dev.ujhhgtg.via.data.BrowserDatabase
 import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.search.SearchProviders
 import dev.ujhhgtg.via.ui.ViaToast
-import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import java.util.Date
 import java.util.Locale
 
@@ -80,12 +79,6 @@ class KsuSslWarningsSettingsFragment : KsuPageFragment() {
         refresh()
     }
 
-    override fun topActions(): List<KsuTopAction> = listOf(
-        KsuTopAction(R.drawable.ic_ksu_info, getString(R.string.help)) {
-            ViaDialog(requireActivity()).title(R.string.title_ignore_ssl_warnings).message(R.string.message_ignore_ssl_warnings)
-                .positive(android.R.string.ok).show()
-        },
-    )
 }
 
 /** Library attributions generated at build time by the AboutLibraries Gradle plugin. */

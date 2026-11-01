@@ -10,11 +10,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box as LayoutBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuGroup
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
@@ -129,4 +132,24 @@ fun KsuTopBarAction(action: KsuTopAction, onMenuAction: (KsuMenuAction) -> Unit)
             }
         }
     }
+}
+
+/** KernelSU's install-module dialog shape: an extra-large M3 alert with a plain text button row. */
+@Composable
+fun KsuConfirmDialog(
+    title: String,
+    message: String?,
+    confirmText: String,
+    dismissText: String?,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
+        title = { Text(title) },
+        text = message?.let { { Text(it) } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText) } },
+        dismissButton = dismissText?.let { { TextButton(onClick = onDismiss) { Text(it) } } },
+    )
 }

@@ -3,7 +3,6 @@ package dev.ujhhgtg.via.settings.compose
 import dev.ujhhgtg.via.R
 import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.ui.behavior.BehaviorPreferences
-import dev.ujhhgtg.via.ui.dialog.ViaDialog
 
 /** i8.w: the context-menu visibility switches, now Material rows. */
 class KsuContextMenuSettingsFragment : KsuPageFragment() {
@@ -41,9 +40,12 @@ class KsuContextMenuSettingsFragment : KsuPageFragment() {
 
     override fun topActions(): List<KsuTopAction> = listOf(
         KsuTopAction(R.drawable.ic_ksu_restore, getString(R.string.action_reset)) {
-            ViaDialog(requireActivity()).title(R.string.reset_to_default_settings).message(R.string.dialog_sure)
-                .positive(R.string.action_reset) { _, _ -> behavior.resetContextMenus(); refresh() }
-                .negative(android.R.string.cancel).show()
+            confirm(
+                title = getString(R.string.reset_to_default_settings),
+                message = getString(R.string.dialog_sure),
+                confirmText = getString(R.string.action_reset),
+                dismissText = getString(android.R.string.cancel),
+            ) { behavior.resetContextMenus(); refresh() }
         },
     )
 }

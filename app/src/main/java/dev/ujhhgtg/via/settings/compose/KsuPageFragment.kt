@@ -8,6 +8,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
@@ -26,6 +27,20 @@ import dev.ujhhgtg.via.ui.dp
  */
 abstract class KsuPageFragment : Fragment() {
     private var revision by mutableIntStateOf(0)
+    private var confirmRequest by mutableStateOf<ConfirmRequest?>(null)
+
+    /** A KernelSU-style confirmation dialog, rendered above the page. */
+    protected class ConfirmRequest(
+        val title: String,
+        val message: String?,
+        val confirmText: String,
+        val dismissText: String?,
+        val onConfirm: () -> Unit,
+    )
+
+    protected fun confirm(title: String, message: String?, confirmText: String, dismissText: String? = null, onConfirm: () -> Unit) {
+        confirmRequest = ConfirmRequest(title, message, confirmText, dismissText, onConfirm)
+    }
 
     @get:StringRes
     protected abstract val titleRes: Int
@@ -82,6 +97,16 @@ abstract class KsuPageFragment : Fragment() {
                         topActions = remember(revisionKey) { topActions() },
                         header = header(),
                     )
+                    confirmRequest?.let { request ->
+                        KsuConfirmDialog(
+                            title = request.title,
+                            message = request.message,
+                            confirmText = request.confirmText,
+                            dismissText = request.dismissText,
+                            onConfirm = { confirmRequest = null; request.onConfirm() },
+                            onDismiss = { confirmRequest = null },
+                        )
+                    }
                 }
             }
         }
