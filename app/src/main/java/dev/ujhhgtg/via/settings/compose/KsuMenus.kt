@@ -15,7 +15,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
@@ -85,11 +84,12 @@ fun KsuSelectableMenu(
             },
             shapes = MenuDefaults.itemShape(index = index, count = items.size),
             selectedLeadingIcon = {
+                // KernelSU lets the menu item's own content colour drive the check; tinting it
+                // with primary (light + saturated in dark mode) read as a stray accent.
                 Icon(
                     painter = painterResource(R.drawable.ic_ksu_check),
                     contentDescription = null,
                     modifier = Modifier.size(MenuDefaults.LeadingIconSize),
-                    tint = MaterialTheme.colorScheme.primary,
                 )
             },
         )

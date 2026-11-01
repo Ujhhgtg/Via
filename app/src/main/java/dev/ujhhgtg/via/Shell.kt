@@ -113,6 +113,7 @@ open class Shell : ViaActivity() {
             action == "block_ads" -> dev.ujhhgtg.via.settings.compose.KsuBlockAdsSettingsFragment()
             action == "settings_operation" -> dev.ujhhgtg.via.settings.compose.KsuGesturesSettingsFragment()
             action == "font" -> dev.ujhhgtg.via.settings.compose.KsuFontSettingsFragment()
+            action == "password_manager" -> dev.ujhhgtg.via.settings.compose.KsuPasswordSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)
