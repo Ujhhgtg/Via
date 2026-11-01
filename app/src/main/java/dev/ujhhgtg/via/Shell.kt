@@ -92,12 +92,23 @@ open class Shell : ViaActivity() {
             .hide(current).addToBackStack(null).commit()
     }
 
-    /** The settings root follows the experimental KernelSU-style page; named sub-pages stay classic. */
+    /**
+     * With the KernelSU-style page enabled the settings root and the ported sub-pages are Compose;
+     * every other action keeps its classic fragment.
+     */
     fun openSettings(action: String? = null) {
-        val root = action == null || action == "settings"
-        val fragment = if (root && dev.ujhhgtg.via.data.BrowserPreferences(this).ksuSettingsUi) {
-            dev.ujhhgtg.via.settings.compose.KsuSettingsFragment()
-        } else SettingsFragment.newInstance(action)
+        val ported = dev.ujhhgtg.via.data.BrowserPreferences(this).ksuSettingsUi
+        val fragment = when {
+            !ported -> SettingsFragment.newInstance(action)
+            action == null || action == "settings" -> dev.ujhhgtg.via.settings.compose.KsuSettingsFragment()
+            action == "settings_general" -> dev.ujhhgtg.via.settings.compose.KsuGeneralSettingsFragment()
+            action == "settings_privacy" -> dev.ujhhgtg.via.settings.compose.KsuPrivacySettingsFragment()
+            action == "settings_advanced" -> dev.ujhhgtg.via.settings.compose.KsuAdvancedSettingsFragment()
+            action == "settings_about" -> dev.ujhhgtg.via.settings.compose.KsuAboutSettingsFragment()
+            action == "settings_script" -> dev.ujhhgtg.via.settings.compose.KsuScriptSettingsFragment()
+            action == "settings_extensions" -> dev.ujhhgtg.via.settings.compose.KsuExtensionSettingsFragment()
+            else -> SettingsFragment.newInstance(action)
+        }
         navigate(fragment)
     }
 

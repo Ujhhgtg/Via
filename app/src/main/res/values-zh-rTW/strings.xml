@@ -1044,4 +1044,7 @@
     <string name="settings_group_general">一般</string>
     <string name="settings_group_features">功能</string>
     <string name="settings_group_about">關於</string>
+    <string name="settings_group_browsing">瀏覽</string>
+    <string name="settings_group_data">資料</string>
+    <string name="settings_group_system">系統</string>
 </resources>

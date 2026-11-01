@@ -94,13 +94,14 @@ class KsuSegmentedScope internal constructor() {
     fun item(content: @Composable () -> Unit) { items += content }
 }
 
-/** A row that opens another page; the trailing chevron stays out of the layout, like KernelSU. */
+/** A row that opens another page, optionally showing its current value before the edge. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun KsuClickableItem(
+fun KsuNavItem(
     @DrawableRes icon: Int? = null,
     title: String,
     summary: String? = null,
+    value: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -113,6 +114,15 @@ fun KsuClickableItem(
         shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
         enabled = enabled,
         leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+        trailingContent = value?.takeIf { it.isNotEmpty() }?.let {
+            {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        },
         supportingContent = summary?.let { { Text(it) } },
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
@@ -219,3 +229,42 @@ fun expressiveTopAppBarColors(
     containerColor = containerColor,
     scrolledContainerColor = scrolledContainerColor,
 )
+
+/** A row whose switch toggles the item while tapping the row opens it (Scripts / Extensions). */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuSwitchNavItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    value: String? = null,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+    onClick: () -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    SegmentedListItem(
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            onClick()
+        },
+        shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+        enabled = enabled,
+        leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+        trailingContent = {
+            ExpressiveSwitch(
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = onCheckedChange,
+                interactionSource = interactionSource,
+            )
+        },
+        supportingContent = summary?.let { { Text(it) } },
+        verticalAlignment = Alignment.CenterVertically,
+        colors = defaultSegmentedColors(),
+        interactionSource = interactionSource,
+        content = { Text(title) },
+    )
+}

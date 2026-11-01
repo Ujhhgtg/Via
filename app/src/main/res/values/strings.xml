@@ -1099,4 +1099,7 @@
     <string name="settings_group_general">General</string>
     <string name="settings_group_features">Features</string>
     <string name="settings_group_about">About</string>
+    <string name="settings_group_browsing">Browsing</string>
+    <string name="settings_group_data">Data</string>
+    <string name="settings_group_system">System</string>
 </resources>
