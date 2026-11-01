@@ -1093,4 +1093,10 @@
     <string name="package_obb_wrong_directory">Select Android/obb or Android/obb/%1$s.</string>
     <string name="package_obb_import_failed">The app is installed, but OBB import failed: %1$s</string>
     <string name="package_skip_obb">Skip</string>
+    <string name="settings_ksu_ui">KernelSU-style settings</string>
+    <string name="settings_ksu_ui_summary">Experimental: a Compose settings home modelled on KernelSU. Applies the next time Settings is opened.</string>
+    <string name="settings_ksu_ui_toast">Switched; reopen Settings to apply</string>
+    <string name="settings_group_general">General</string>
+    <string name="settings_group_features">Features</string>
+    <string name="settings_group_about">About</string>
 </resources>

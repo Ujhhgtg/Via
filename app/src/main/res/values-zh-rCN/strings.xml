@@ -1076,4 +1076,10 @@
     <string name="package_obb_wrong_directory">请选择 Android/obb 或 Android/obb/%1$s 目录。</string>
     <string name="package_obb_import_failed">应用已安装，但 OBB 数据导入失败：%1$s</string>
     <string name="package_skip_obb">跳过</string>
+    <string name="settings_ksu_ui">KernelSU 风格设置界面</string>
+    <string name="settings_ksu_ui_summary">实验性：仿 KernelSU 的 Compose 设置主页，重新进入设置后生效。</string>
+    <string name="settings_ksu_ui_toast">已切换，重新进入设置后生效</string>
+    <string name="settings_group_general">通用</string>
+    <string name="settings_group_features">功能</string>
+    <string name="settings_group_about">关于</string>
 </resources>

@@ -30,6 +30,7 @@ class AdvancedSettingsFragment : SettingsListFragment() {
         add(SettingsToggleRow(7, getString(R.string.disable_custom_tabs), getString(R.string.disable_custom_tabs_description), preferences.disableCustomTabs))
         add(SettingsToggleRow(5, getString(R.string.title_disable_safe_browsing), getString(R.string.title_disable_safe_browsing_description), !preferences.safeBrowsing))
         add(SettingsRow(6, getString(R.string.title_ignore_ssl_warnings), getString(R.string.title_ignore_ssl_warnings_description)))
+        add(SettingsToggleRow(9, getString(R.string.settings_ksu_ui), getString(R.string.settings_ksu_ui_summary), preferences.ksuSettingsUi))
     })
     private fun clicked(row: SettingsRow) {
         if (row.id == 6) { ignoredSslWarnings(); return }
@@ -45,6 +46,10 @@ class AdvancedSettingsFragment : SettingsListFragment() {
             5 -> preferences.safeBrowsing = !enabled
             7 -> preferences.disableCustomTabs = enabled
             8 -> preferences.disablePredictiveBack = enabled
+            9 -> {
+                preferences.ksuSettingsUi = enabled
+                android.widget.Toast.makeText(requireContext(), R.string.settings_ksu_ui_toast, android.widget.Toast.LENGTH_SHORT).show()
+            }
         }
         // hb.z.h3: only Save-Data, debugging and safe-browsing changes set n.y.
         if (row.id == 4 || row.id == 3 || row.id == 5) GeneratedDocumentState.mark(GeneratedDocumentState.PAGE_SETTINGS)

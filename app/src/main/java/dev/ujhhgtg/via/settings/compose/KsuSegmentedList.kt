@@ -1,0 +1,221 @@
+package dev.ujhhgtg.via.settings.compose
+
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
+import dev.ujhhgtg.via.R
+
+/*
+ * KernelSU's Manager settings surface, ported for Via: the same segmented cards
+ * (manager/.../ui/component/material/SegmentedList.kt), expressive switch and top bar colours.
+ */
+
+private val LocalListItemShapes = compositionLocalOf<ListItemShapes?> { null }
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun defaultSegmentedColors(): ListItemColors = ListItemDefaults.segmentedColors(
+    containerColor = MaterialTheme.colorScheme.surfaceBright,
+    disabledContainerColor = MaterialTheme.colorScheme.surfaceBright,
+    supportingContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+)
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun defaultSingleSegmentedShape(index: Int, count: Int): ListItemShapes {
+    val base = ListItemDefaults.segmentedShapes(index, count)
+    return if (count == 1) base.copy(shape = MaterialTheme.shapes.large) else base
+}
+
+/**
+ * One card of rows: rows are painted as segments with the first/last one carrying the outer
+ * radius, exactly like KernelSU's settings groups.
+ */
+@Composable
+fun KsuSegmentedColumn(
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    content: KsuSegmentedScope.() -> Unit,
+) {
+    val items = KsuSegmentedScope().apply(content).items
+    if (items.isEmpty()) return
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (!title.isNullOrEmpty()) Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            items.forEachIndexed { index, itemContent ->
+                CompositionLocalProvider(
+                    LocalListItemShapes provides defaultSingleSegmentedShape(index, items.size),
+                ) { itemContent() }
+            }
+        }
+    }
+}
+
+@DslMarker
+annotation class KsuSegmentedScopeDsl
+
+/** Collects the rows of a [KsuSegmentedColumn] so the card can hand out first/last shapes. */
+@KsuSegmentedScopeDsl
+class KsuSegmentedScope internal constructor() {
+    internal val items = mutableListOf<@Composable () -> Unit>()
+    fun item(content: @Composable () -> Unit) { items += content }
+}
+
+/** A row that opens another page; the trailing chevron stays out of the layout, like KernelSU. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuClickableItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+    SegmentedListItem(
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            onClick()
+        },
+        shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+        enabled = enabled,
+        leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+        supportingContent = summary?.let { { Text(it) } },
+        verticalAlignment = Alignment.CenterVertically,
+        colors = defaultSegmentedColors(),
+        content = { Text(title) },
+    )
+}
+
+/** A row with a trailing expressive switch, as used by KernelSU's switches group. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuSwitchItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
+    SegmentedListItem(
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            onCheckedChange(!checked)
+        },
+        shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+        enabled = enabled,
+        leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+        trailingContent = {
+            ExpressiveSwitch(
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = null,
+                interactionSource = interactionSource,
+            )
+        },
+        supportingContent = summary?.let { { Text(it) } },
+        verticalAlignment = Alignment.CenterVertically,
+        colors = defaultSegmentedColors(),
+        interactionSource = interactionSource,
+        content = { Text(title) },
+    )
+}
+
+/** KernelSU's expressive switch: a check/close icon rides in the thumb. */
+@Composable
+fun ExpressiveSwitch(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    thumbContent: (@Composable () -> Unit)? = null,
+    enabled: Boolean = true,
+    colors: SwitchColors = expressiveSwitchColors(),
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    showThumbIcon: Boolean = true,
+) {
+    Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        modifier = modifier,
+        thumbContent = thumbContent ?: if (showThumbIcon && (checked || enabled)) {
+            {
+                Icon(
+                    painter = painterResource(if (checked) R.drawable.ic_ksu_check else R.drawable.ic_ksu_close),
+                    contentDescription = null,
+                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                )
+            }
+        } else null,
+        enabled = enabled,
+        colors = colors,
+        interactionSource = interactionSource,
+    )
+}
+
+@Composable
+fun expressiveSwitchColors(
+    checkedIconColor: Color = MaterialTheme.colorScheme.primary,
+    uncheckedIconColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    disabledCheckedThumbColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.38f),
+    disabledCheckedTrackColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+    disabledCheckedIconColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+    disabledUncheckedThumbColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.38f),
+    disabledUncheckedTrackColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.12f),
+    disabledUncheckedBorderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+    disabledUncheckedIconColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+): SwitchColors = SwitchDefaults.colors(
+    checkedIconColor = checkedIconColor,
+    uncheckedIconColor = uncheckedIconColor,
+    disabledCheckedThumbColor = disabledCheckedThumbColor,
+    disabledCheckedTrackColor = disabledCheckedTrackColor,
+    disabledCheckedIconColor = disabledCheckedIconColor,
+    disabledUncheckedThumbColor = disabledUncheckedThumbColor,
+    disabledUncheckedTrackColor = disabledUncheckedTrackColor,
+    disabledUncheckedBorderColor = disabledUncheckedBorderColor,
+    disabledUncheckedIconColor = disabledUncheckedIconColor,
+)
+
+@Composable
+fun expressiveTopAppBarColors(
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    scrolledContainerColor: Color = containerColor,
+): TopAppBarColors = TopAppBarDefaults.topAppBarColors(
+    containerColor = containerColor,
+    scrolledContainerColor = scrolledContainerColor,
+)

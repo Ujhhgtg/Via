@@ -92,7 +92,14 @@ open class Shell : ViaActivity() {
             .hide(current).addToBackStack(null).commit()
     }
 
-    fun openSettings(action: String? = null) = navigate(SettingsFragment.newInstance(action))
+    /** The settings root follows the experimental KernelSU-style page; named sub-pages stay classic. */
+    fun openSettings(action: String? = null) {
+        val root = action == null || action == "settings"
+        val fragment = if (root && dev.ujhhgtg.via.data.BrowserPreferences(this).ksuSettingsUi) {
+            dev.ujhhgtg.via.settings.compose.KsuSettingsFragment()
+        } else SettingsFragment.newInstance(action)
+        navigate(fragment)
+    }
 
     fun openPage(action: String) {
         when (action.substringBefore(':')) {
