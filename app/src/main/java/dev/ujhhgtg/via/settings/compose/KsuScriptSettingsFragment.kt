@@ -1,5 +1,7 @@
 package dev.ujhhgtg.via.settings.compose
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.provider.DocumentsContract
@@ -85,7 +87,8 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
     override fun groups(): List<KsuGroup> {
         val settings = listOf(
             KsuToggleRow(KEY_TOGGLE, R.drawable.ic_ksu_code, getString(R.string.enable_scripts), checked = preferences.scriptsEnabled),
-            KsuNavRow(KEY_INTERVAL, R.drawable.ic_ksu_schedule, getString(R.string.update_interval), value = intervalLabels()[intervalIndex()]),
+            KsuDropdownRow(KEY_INTERVAL, R.drawable.ic_ksu_schedule, getString(R.string.update_interval),
+                options = intervalLabels().toList(), selectedIndex = intervalIndex()),
         )
         val installed = scripts.map { script ->
             KsuSwitchNavRow(
@@ -95,6 +98,13 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
                 summary = script.description?.takeIf { it.isNotBlank() } ?: script.version,
                 checked = script.enabled,
                 enabled = preferences.scriptsEnabled,
+                actions = buildList {
+                    add(KsuMenuAction(1, getString(R.string.action_edit)))
+                    if (!script.downloadUrl.isNullOrEmpty()) add(KsuMenuAction(2, getString(R.string.update)))
+                    if (!script.homepageUrl.isNullOrEmpty()) add(KsuMenuAction(3, getString(R.string.home)))
+                    add(KsuMenuAction(4, getString(R.string.action_copy)))
+                    add(KsuMenuAction(5, getString(R.string.action_delete)))
+                },
             )
         }
         return listOfNotNull(
@@ -105,7 +115,7 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
 
     override fun onRow(row: KsuRow) {
         when (row.key) {
-            KEY_INTERVAL -> chooseInterval()
+            KEY_INTERVAL -> Unit
             else -> {
                 val script = scripts.firstOrNull { it.id == row.key } ?: return
                 if (script.content.isEmpty()) {
@@ -204,15 +214,42 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
 
     private fun openDetails(id: Int) = (requireActivity() as Shell).navigate(ScriptDetailsFragment.newInstance(id))
 
+
+    override fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) {
+        val script = scripts.firstOrNull { it.id == row.key } ?: return
+        when (action.id) {
+            1 -> openDetails(script.id)
+            2 -> script.downloadUrl?.let { importUrl(it, script.id) }
+            3 -> script.homepageUrl?.let { (requireActivity() as Shell).openRecordFromRecords(it, false) }
+            4 -> copyLink(script.downloadUrl)
+            5 -> deleteScript(script)
+        }
+    }
+
+    private fun deleteScript(script: UserScript) {
+        ViaDialog(requireActivity()).title(R.string.action_delete).message(getString(R.string.delete_item_message, script.name))
+            .positive(android.R.string.ok) { _, _ ->
+                scripts = scripts.filterNot { it.id == script.id }
+                refresh()
+                worker.execute { manager.remove(script.id); manager.cleanupResources() }
+            }.negative(android.R.string.cancel).show()
+    }
+
+    private fun copyLink(url: String?) {
+        if (url.isNullOrEmpty()) return
+        (requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(ClipData.newPlainText("", url))
+        toast(R.string.toast_copy_url_successful)
+    }
+
     private fun intervalLabels() = arrayOf(R.string.never, R.string.every_day, R.string.every_3_days, R.string.every_week, R.string.every_15_days).map(::getString).toTypedArray()
 
     private fun intervalIndex() = INTERVAL_DAYS.indexOfLast { preferences.scriptUpdateInterval >= it * DAY }.coerceAtLeast(0)
 
-    private fun chooseInterval() {
-        ViaDialog(requireActivity()).title(R.string.update_interval).singleChoice(intervalLabels(), intervalIndex()) {
-            preferences.scriptUpdateInterval = INTERVAL_DAYS[it] * DAY
-            refresh()
-        }.show()
+    override fun onSelect(row: KsuDropdownRow, index: Int) {
+        if (row.key != KEY_INTERVAL) return
+        preferences.scriptUpdateInterval = INTERVAL_DAYS[index] * DAY
+        refresh()
     }
 
     private fun toast(resource: Int) = ViaToast.show(requireContext(), resource)

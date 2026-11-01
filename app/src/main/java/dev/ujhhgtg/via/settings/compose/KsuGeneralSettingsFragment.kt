@@ -2,6 +2,7 @@ package dev.ujhhgtg.via.settings.compose
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
@@ -20,6 +21,7 @@ import dev.ujhhgtg.via.data.SettingsDataRepository
 import dev.ujhhgtg.via.settings.ExternalDownloadManagers
 import dev.ujhhgtg.via.settings.ExternalVideoPlayers
 import dev.ujhhgtg.via.settings.SettingsController
+import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import java.util.Locale
 
 /** hb.c4's list, ported to the Material settings page; dialog-backed rows reuse [SettingsController]. */
@@ -74,19 +76,23 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         val orientationAllowed = Build.VERSION.SDK_INT < 36 || resources.configuration.smallestScreenWidthDp < 600
         val orientation = intArrayOf(R.string.follow_system, R.string.orientation_auto, R.string.orientation_portrait, R.string.orientation_landscape)
         val restored = intArrayOf(R.string.disable_restore, R.string.always_restore, R.string.ask_first)
-        val manager = managers?.firstOrNull { it.id == preferences.downloadManager.orEmpty() } ?: managers?.firstOrNull()
-        val player = players?.firstOrNull { it.packageName == preferences.videoPlayer.orEmpty() } ?: players?.firstOrNull()
 
         return listOf(
             KsuGroup(getString(R.string.settings_general), listOf(
                 KsuNavRow(26, R.drawable.ic_ksu_sync, getString(R.string.sync)),
                 KsuNavRow(2, R.drawable.ic_ksu_smartphone, getString(R.string.agent), agentTitle),
-                KsuNavRow(9, R.drawable.ic_ksu_translate, getString(R.string.language), value = languageTitle()),
-                KsuNavRow(10, R.drawable.ic_ksu_home, getString(R.string.home), value = homeTitle()),
+                KsuDropdownRow(9, R.drawable.ic_ksu_translate, getString(R.string.language),
+                    options = listOf(getString(R.string.follow_system)) + languageTags().map { tag ->
+                        Locale.forLanguageTag(tag).let { it.getDisplayName(it) }
+                    }, selectedIndex = languageIndex()),
+                KsuDropdownRow(10, R.drawable.ic_ksu_home, getString(R.string.home),
+                    options = listOf(getString(R.string.default_set), getString(R.string.action_blank),
+                        getString(R.string.action_bookmarks), getString(R.string.action_webpage)),
+                    selectedIndex = homeIndex()),
                 KsuNavRow(31, R.drawable.ic_ksu_search, getString(R.string.search_settings)),
                 KsuNavRow(35, R.drawable.ic_ksu_font_download, getString(R.string.font), value = preferences.uiFont),
-                KsuNavRow(13, R.drawable.ic_ksu_screen_rotation, getString(R.string.orientation),
-                    value = getString(orientation[if (orientationAllowed) (preferences.screenOrientation - 1).coerceIn(0, 3) else 0]),
+                KsuDropdownRow(13, R.drawable.ic_ksu_screen_rotation, getString(R.string.orientation),
+                    options = orientation.map(::getString), selectedIndex = (preferences.screenOrientation - 1).coerceIn(0, 3),
                     enabled = orientationAllowed),
             )),
             KsuGroup(getString(R.string.settings_group_browsing), listOf(
@@ -101,15 +107,21 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
             )),
             KsuGroup(getString(R.string.settings_group_data), listOf(
                 KsuNavRow(14, R.drawable.ic_ksu_download, getString(R.string.download), value = downloadTitle()),
-                KsuNavRow(15, R.drawable.ic_ksu_download_for_offline, getString(R.string.addon_download),
-                    value = manager?.label ?: getString(R.string.built_in_download_manager), enabled = managers != null),
-                KsuNavRow(27, R.drawable.ic_ksu_play_circle, getString(R.string.external_video_player),
-                    value = player?.label ?: getString(R.string.player_system_sharing), enabled = players != null),
+                managers?.let { choices ->
+                    KsuDropdownRow(15, R.drawable.ic_ksu_download_for_offline, getString(R.string.addon_download),
+                        options = choices.map { it.label }, selectedIndex = choices.indexOfFirst { it.id == preferences.downloadManager.orEmpty() }.coerceAtLeast(0))
+                } ?: KsuNavRow(15, R.drawable.ic_ksu_download_for_offline, getString(R.string.addon_download),
+                    value = getString(R.string.built_in_download_manager), enabled = false),
+                players?.let { choices ->
+                    KsuDropdownRow(27, R.drawable.ic_ksu_play_circle, getString(R.string.external_video_player),
+                        options = choices.map { it.label }, selectedIndex = choices.indexOfFirst { it.packageName == preferences.videoPlayer.orEmpty() }.coerceAtLeast(0))
+                } ?: KsuNavRow(27, R.drawable.ic_ksu_play_circle, getString(R.string.external_video_player),
+                    value = getString(R.string.player_system_sharing), enabled = false),
                 KsuNavRow(20, R.drawable.ic_ksu_bookmark, getString(R.string.import_or_export_bookmarks)),
                 KsuNavRow(21, R.drawable.ic_ksu_upload_file, getString(R.string.import_data)),
                 KsuNavRow(22, R.drawable.ic_ksu_save_alt, getString(R.string.export_data), value = getString(R.string.export_data_description)),
-                KsuNavRow(23, R.drawable.ic_ksu_restore, getString(R.string.restore_tabs),
-                    value = getString(restored[preferences.restoreClosedTabs.coerceIn(0, 2)])),
+                KsuDropdownRow(23, R.drawable.ic_ksu_restore, getString(R.string.restore_tabs),
+                    options = restored.map(::getString), selectedIndex = preferences.restoreClosedTabs.coerceIn(0, 2)),
                 KsuToggleRow(33, R.drawable.ic_ksu_undo, getString(R.string.show_toast_to_undo_closing_tab),
                     getString(R.string.show_toast_to_undo_closing_tab_description), preferences.showUndoCloseTab),
             )),
@@ -159,6 +171,85 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         refresh()
     }
 
+    override fun onSelect(row: KsuDropdownRow, index: Int) {
+        when (row.key) {
+            9 -> applyLanguage(index)
+            10 -> applyHome(index)
+            13 -> {
+                preferences.screenOrientation = index + 1
+                if (Build.VERSION.SDK_INT < 36 || resources.configuration.smallestScreenWidthDp < 600) {
+                    requireActivity().requestedOrientation = preferences.resolvedScreenOrientation()
+                }
+            }
+            15 -> managers?.getOrNull(index)?.let { preferences.downloadManager = it.id }
+            23 -> {
+                preferences.restoreClosedTabs = index
+                if (index != 0) dev.ujhhgtg.via.ui.ViaToast.makeText(requireContext(),
+                    getString(R.string.restore_tabs_hint_settings), dev.ujhhgtg.via.ui.ViaToast.LENGTH_SHORT).show()
+            }
+            27 -> players?.getOrNull(index)?.let { preferences.videoPlayer = it.packageName }
+        }
+        refresh()
+    }
+
+    private fun languageTags(): List<String> = buildList {
+        val parser = resources.getXml(R.xml.locales_config)
+        parser.use { parser ->
+            while (parser.eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                if (parser.eventType == org.xmlpull.v1.XmlPullParser.START_TAG && parser.name == "locale") {
+                    parser.getAttributeValue("http://schemas.android.com/apk/res/android", "name")?.let(::add)
+                }
+                parser.next()
+            }
+        }
+    }.sorted()
+
+    private fun languageIndex(): Int {
+        val selected = preferences.language?.let { Locale.forLanguageTag(it).toLanguageTag() }
+        return languageTags().indexOfFirst { Locale.forLanguageTag(it).toLanguageTag() == selected } + 1
+    }
+
+    private fun homeIndex(): Int = when {
+        preferences.home == "about:blank" -> 1
+        preferences.home == "about:bookmarks" -> 2
+        preferences.home.startsWith("about:") -> 0
+        else -> 3
+    }
+
+    private fun applyLanguage(index: Int) {
+        if (index == languageIndex()) return
+        val tags = languageTags()
+        preferences.language = tags.getOrNull(index - 1)
+        refresh()
+        ViaDialog(requireActivity()).title(R.string.language).message(R.string.restart_to_take_effect)
+            .positive(R.string.crash_restart) { _, _ ->
+                startActivity(Intent.makeRestartActivityTask(android.content.ComponentName(requireActivity(), Shell::class.java)).setPackage(requireContext().packageName))
+                kotlin.system.exitProcess(0)
+            }.negative(android.R.string.cancel).show()
+    }
+
+    private fun applyHome(index: Int) {
+        when (index) {
+            0 -> preferences.home = "about:home"
+            1 -> preferences.home = "about:blank"
+            2 -> preferences.home = "about:bookmarks"
+            else -> editHomepage()
+        }
+        refresh()
+    }
+
+    private fun editHomepage() {
+        ViaDialog(requireActivity()).title(R.string.title_custom_homepage)
+            .input(preferences.home.takeUnless { it.startsWith("about:") } ?: "https://m.baidu.com/?tn=&from=1022560v",
+                getString(R.string.title_custom_homepage), 3)
+            .positive(android.R.string.ok) { _, result ->
+                val raw = result.edit?.firstOrNull()?.trim().orEmpty()
+                val normalized = dev.ujhhgtg.via.browser.UrlResolver.normalizeInput(raw, null)
+                if (normalized != null && normalized.contains("://")) preferences.home = normalized
+                refresh()
+            }.negative(android.R.string.cancel).show()
+    }
+
     private fun refreshExternalApps() {
         if (view == null) return
         val context = requireContext().applicationContext
@@ -188,21 +279,7 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         }, { agentTitle = it; refresh() }) { android.util.Log.w("ViaSettings", "User agent title query failed", it) }
     }
 
-    private fun languageTitle(): String {
-        val language = preferences.language.orEmpty()
-        if (language.isEmpty()) return getString(R.string.follow_system)
-        val locale = Locale.forLanguageTag(language)
-        val name = locale.getDisplayLanguage(locale)
-        val country = locale.getDisplayCountry(locale)
-        return (if (country.isEmpty()) name else "$name($country)").takeUnless { it == language } ?: getString(R.string.follow_system)
-    }
 
-    private fun homeTitle(): String = when (preferences.home) {
-        "about:home", "about:links" -> getString(R.string.default_set)
-        "about:blank" -> getString(R.string.action_blank)
-        "about:bookmarks" -> getString(R.string.action_bookmarks)
-        else -> preferences.home
-    }
 
     @SuppressLint("SdCardPath")
     private fun downloadTitle(): String {

@@ -1,6 +1,9 @@
 package dev.ujhhgtg.via.settings.compose
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +19,7 @@ import dev.ujhhgtg.via.engine.ExtensionManager
 import dev.ujhhgtg.via.extensions.ExtensionFiles
 import dev.ujhhgtg.via.extensions.ExtensionHost
 import dev.ujhhgtg.via.settings.ExtensionDetailsFragment
+import dev.ujhhgtg.via.settings.ExtensionSettingsFragment
 import dev.ujhhgtg.via.ui.ViaToast
 import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import kotlinx.coroutines.launch
@@ -70,7 +74,8 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
     override fun groups(): List<KsuGroup> {
         val settings = listOf(
             KsuToggleRow(KEY_TOGGLE, R.drawable.ic_ksu_extension, getString(R.string.enable_extensions), checked = preferences.extensionsEnabled),
-            KsuNavRow(KEY_INTERVAL, R.drawable.ic_ksu_schedule, getString(R.string.update_interval), value = intervalLabels()[intervalIndex()]),
+            KsuDropdownRow(KEY_INTERVAL, R.drawable.ic_ksu_schedule, getString(R.string.update_interval),
+                options = intervalLabels().toList(), selectedIndex = intervalIndex()),
             KsuToggleRow(KEY_UNSIGNED, R.drawable.ic_ksu_verified_user, getString(R.string.allow_unsigned_extensions),
                 getString(R.string.allow_unsigned_extensions_description), preferences.allowUnsignedExtensions),
         )
@@ -82,6 +87,14 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
                 summary = summary(extension),
                 checked = extension.userEnabled,
                 enabled = preferences.extensionsEnabled && extension.disabledReason == null,
+                actions = buildList {
+                    add(KsuMenuAction(1, getString(R.string.action_edit)))
+                    add(KsuMenuAction(2, getString(R.string.update)))
+                    if (extension.optionsUrl != null) add(KsuMenuAction(3, getString(R.string.extension_options)))
+                    if (extension.homepageUrl != null) add(KsuMenuAction(4, getString(R.string.home)))
+                    if (extension.amoUrl != null) add(KsuMenuAction(5, getString(R.string.action_copy)))
+                    add(KsuMenuAction(6, getString(R.string.uninstall)))
+                },
             )
         }
         return listOfNotNull(
@@ -98,10 +111,8 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
     }
 
     override fun onRow(row: KsuRow) {
-        when (row.key) {
-            KEY_INTERVAL -> chooseInterval()
-            else -> (extensions.firstOrNull { it.id == row.key })?.let { openDetails(it.id) }
-        }
+        if (row.key == KEY_INTERVAL) return
+        (extensions.firstOrNull { it.id == row.key })?.let { openDetails(it.id) }
     }
 
     override fun onToggle(row: KsuToggleRow, checked: Boolean) {
@@ -184,15 +195,34 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
         }
     }
 
+
+    override fun onAction(row: KsuSwitchNavRow, action: KsuMenuAction) {
+        val extension = extensions.firstOrNull { it.id == row.key } ?: return
+        when (action.id) {
+            1 -> openDetails(extension.id)
+            2 -> update(listOf(extension))
+            3 -> manager.openOptions(extension.id)
+            4 -> extension.homepageUrl?.let { (requireActivity() as Shell).openRecordFromRecords(it, 1) }
+            5 -> copyLink(extension.amoUrl)
+            6 -> ExtensionSettingsFragment.confirmUninstall(this, manager, extension) { load() }
+        }
+    }
+
+    private fun copyLink(url: String?) {
+        if (url.isNullOrEmpty()) return
+        (requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(ClipData.newPlainText("", url))
+        toast(R.string.toast_copy_url_successful)
+    }
+
     private fun intervalLabels() = arrayOf(R.string.never, R.string.every_day, R.string.every_3_days, R.string.every_week, R.string.every_15_days).map(::getString).toTypedArray()
 
     private fun intervalIndex() = INTERVAL_DAYS.indexOfLast { preferences.extensionUpdateInterval >= it * DAY }.coerceAtLeast(0)
 
-    private fun chooseInterval() {
-        ViaDialog(requireActivity()).title(R.string.update_interval).singleChoice(intervalLabels(), intervalIndex()) {
-            preferences.extensionUpdateInterval = INTERVAL_DAYS[it] * DAY
-            refresh()
-        }.show()
+    override fun onSelect(row: KsuDropdownRow, index: Int) {
+        if (row.key != KEY_INTERVAL) return
+        preferences.extensionUpdateInterval = INTERVAL_DAYS[index] * DAY
+        refresh()
     }
 
     private fun openDetails(id: String) = (requireActivity() as Shell).navigate(ExtensionDetailsFragment.newInstance(id))

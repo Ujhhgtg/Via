@@ -19,6 +19,7 @@ import androidx.core.net.toUri
 import dev.ujhhgtg.via.BuildConfig
 import dev.ujhhgtg.via.R
 import dev.ujhhgtg.via.Shell
+import dev.ujhhgtg.via.settings.DebuggingInfoFragment
 import dev.ujhhgtg.via.settings.OpenSourceLicensesFragment
 import dev.ujhhgtg.via.ui.dialog.ViaDialog
 import java.util.Locale
@@ -37,7 +38,9 @@ class KsuAboutSettingsFragment : KsuPageFragment() {
             Image(
                 painter = painterResource(R.drawable.settings_about_logo),
                 contentDescription = null,
-                modifier = Modifier.size(72.dp),
+                modifier = Modifier
+                    .size(72.dp)
+                    .clickable { (requireActivity() as Shell).navigate(DebuggingInfoFragment()) },
             )
             Text(
                 text = getString(R.string.app_name),

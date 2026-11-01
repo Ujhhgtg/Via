@@ -3,16 +3,19 @@ package dev.ujhhgtg.via.settings.compose
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
@@ -23,14 +26,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import dev.ujhhgtg.via.R
 
 /*
@@ -242,29 +250,93 @@ fun KsuSwitchNavItem(
     enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
     onClick: () -> Unit,
+    actions: List<KsuMenuAction> = emptyList(),
+    onAction: (KsuMenuAction) -> Unit = {},
 ) {
     val haptic = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
-    SegmentedListItem(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-            onClick()
-        },
-        shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
-        enabled = enabled,
-        leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
-        trailingContent = {
-            ExpressiveSwitch(
-                checked = checked,
-                enabled = enabled,
-                onCheckedChange = onCheckedChange,
-                interactionSource = interactionSource,
-            )
-        },
-        supportingContent = summary?.let { { Text(it) } },
-        verticalAlignment = Alignment.CenterVertically,
-        colors = defaultSegmentedColors(),
-        interactionSource = interactionSource,
-        content = { Text(title) },
-    )
+    var menuExpanded by remember { mutableStateOf(false) }
+    var menuAnchor by remember { mutableStateOf(IntOffset.Zero) }
+    Box(Modifier.trackPressPosition { menuAnchor = it.round() }) {
+        SegmentedListItem(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                onClick()
+            },
+            onLongClick = actions.takeIf { it.isNotEmpty() }?.let {
+                {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    menuExpanded = true
+                }
+            },
+            shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+            enabled = enabled,
+            leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+            trailingContent = {
+                ExpressiveSwitch(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                    interactionSource = interactionSource,
+                )
+            },
+            supportingContent = summary?.let { { Text(it) } },
+            verticalAlignment = Alignment.CenterVertically,
+            colors = defaultSegmentedColors(),
+            interactionSource = interactionSource,
+            content = { Text(title) },
+        )
+        if (actions.isNotEmpty()) {
+            KsuExpressiveMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorOffset = menuAnchor) {
+                actions.forEachIndexed { index, action ->
+                    DropdownMenuItem(
+                        text = { Text(action.label) },
+                        onClick = { menuExpanded = false; onAction(action) },
+                        shape = MenuDefaults.itemShape(index = index, count = actions.size).shape,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** KernelSU's dropdown row: the current choice sits on the trailing edge and opens the menu. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KsuDropdownItem(
+    @DrawableRes icon: Int? = null,
+    title: String,
+    summary: String? = null,
+    items: List<String>,
+    selectedIndex: Int,
+    enabled: Boolean = true,
+    onSelect: (Int) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var anchor by remember { mutableStateOf(IntOffset.Zero) }
+    Box(Modifier.trackPressPosition { anchor = it.round() }) {
+        SegmentedListItem(
+            onClick = { if (items.isNotEmpty()) expanded = true },
+            shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
+            enabled = enabled,
+            leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
+            supportingContent = summary?.let { { Text(it) } },
+            trailingContent = {
+                Text(
+                    text = items.getOrNull(selectedIndex).orEmpty(),
+                    color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            verticalAlignment = Alignment.CenterVertically,
+            colors = defaultSegmentedColors(),
+            content = { Text(title) },
+        )
+        if (items.isNotEmpty()) {
+            KsuExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorOffset = anchor) {
+                KsuSelectableMenu(items = items, selectedIndex = selectedIndex,
+                    onDismiss = { expanded = false }, onSelect = onSelect)
+            }
+        }
+    }
 }

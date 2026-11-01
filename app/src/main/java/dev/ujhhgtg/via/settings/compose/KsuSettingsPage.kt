@@ -55,6 +55,18 @@ data class KsuSwitchNavRow(
     val value: String? = null,
     val checked: Boolean,
     val enabled: Boolean = true,
+    val actions: List<KsuMenuAction> = emptyList(),
+) : KsuRow
+
+/** A row that opens KernelSU's expressive selection menu and shows the current choice. */
+data class KsuDropdownRow(
+    override val key: Any,
+    override val icon: Int,
+    override val title: String,
+    override val summary: String? = null,
+    val options: List<String>,
+    val selectedIndex: Int,
+    val enabled: Boolean = true,
 ) : KsuRow
 
 /** A row with a trailing expressive switch. */
@@ -66,6 +78,9 @@ data class KsuToggleRow(
     val checked: Boolean,
     val enabled: Boolean = true,
 ) : KsuRow
+
+/** One entry of a row's long-press menu, rendered with KernelSU's expressive menu. */
+data class KsuMenuAction(val id: Int, val label: String)
 
 /** A trailing top-bar action, such as the Scripts page's add and update entries. */
 data class KsuTopAction(
@@ -90,6 +105,8 @@ fun KsuSettingsPage(
     onRowClick: (KsuRow) -> Unit,
     onToggle: (KsuToggleRow, Boolean) -> Unit,
     onSwitchRow: (KsuSwitchNavRow, Boolean) -> Unit = { _, _ -> },
+    onSelect: (KsuDropdownRow, Int) -> Unit = { _, _ -> },
+    onAction: (KsuSwitchNavRow, KsuMenuAction) -> Unit = { _, _ -> },
     topActions: List<KsuTopAction> = emptyList(),
     header: (@Composable () -> Unit)? = null,
 ) {
@@ -141,6 +158,15 @@ fun KsuSettingsPage(
                                     enabled = row.enabled,
                                     onCheckedChange = { onToggle(row, it) },
                                 )
+                                is KsuDropdownRow -> KsuDropdownItem(
+                                    icon = row.icon,
+                                    title = row.title,
+                                    summary = row.summary,
+                                    items = row.options,
+                                    selectedIndex = row.selectedIndex,
+                                    enabled = row.enabled,
+                                    onSelect = { onSelect(row, it) },
+                                )
                                 is KsuSwitchNavRow -> KsuSwitchNavItem(
                                     icon = row.icon,
                                     title = row.title,
@@ -150,6 +176,8 @@ fun KsuSettingsPage(
                                     enabled = row.enabled,
                                     onCheckedChange = { onSwitchRow(row, it) },
                                     onClick = { onRowClick(row) },
+                                    actions = row.actions,
+                                    onAction = { action -> onAction(row, action) },
                                 )
                                 is KsuNavRow -> KsuNavItem(
                                     icon = row.icon,
