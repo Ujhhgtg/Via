@@ -169,7 +169,7 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
             30 -> shell.openPage("reader_mode")
             31 -> shell.navigate(KsuSearchSettingsFragment())
             32 -> shell.openPage("toolbars_settings")
-            35 -> shell.openPage("font")
+            35 -> shell.navigate(KsuFontSettingsFragment())
             36 -> shell.openPage("password_manager")
             37 -> shell.openPage("customize_context_menu")
         }

@@ -112,6 +112,7 @@ open class Shell : ViaActivity() {
             action == "action_night" -> dev.ujhhgtg.via.settings.compose.KsuNightModeSettingsFragment()
             action == "block_ads" -> dev.ujhhgtg.via.settings.compose.KsuBlockAdsSettingsFragment()
             action == "settings_operation" -> dev.ujhhgtg.via.settings.compose.KsuGesturesSettingsFragment()
+            action == "font" -> dev.ujhhgtg.via.settings.compose.KsuFontSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)
