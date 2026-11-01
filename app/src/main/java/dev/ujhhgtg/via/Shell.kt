@@ -114,6 +114,9 @@ open class Shell : ViaActivity() {
             action == "settings_operation" -> dev.ujhhgtg.via.settings.compose.KsuGesturesSettingsFragment()
             action == "font" -> dev.ujhhgtg.via.settings.compose.KsuFontSettingsFragment()
             action == "password_manager" -> dev.ujhhgtg.via.settings.compose.KsuPasswordSettingsFragment()
+            action == "customize_context_menu" -> dev.ujhhgtg.via.settings.compose.KsuContextMenuSettingsFragment()
+            action == "reader_mode" -> dev.ujhhgtg.via.settings.compose.KsuReaderSettingsFragment()
+            action == "toolbars_settings" -> dev.ujhhgtg.via.settings.compose.KsuToolbarSettingsFragment()
             else -> SettingsFragment.newInstance(action)
         }
         navigate(fragment)

@@ -395,6 +395,7 @@ fun KsuInputItem(
     placeholder: String? = null,
     isPassword: Boolean = false,
     keyboardNumeric: Boolean = false,
+    multiline: Boolean = false,
     enabled: Boolean = true,
     onValueChange: (String) -> Unit,
 ) {
@@ -408,7 +409,8 @@ fun KsuInputItem(
                 value = text,
                 onValueChange = { text = it; onValueChange(it) },
                 enabled = enabled,
-                singleLine = true,
+                singleLine = !multiline,
+                maxLines = if (multiline) 8 else 1,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when {

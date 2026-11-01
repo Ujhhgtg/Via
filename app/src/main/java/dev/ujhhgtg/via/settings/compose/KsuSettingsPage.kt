@@ -68,6 +68,7 @@ data class KsuInputRow(
     val placeholder: String? = null,
     val isPassword: Boolean = false,
     val keyboardNumeric: Boolean = false,
+    val multiline: Boolean = false,
     val enabled: Boolean = true,
 ) : KsuRow
 
@@ -189,6 +190,7 @@ fun KsuSettingsPage(
                                     placeholder = row.placeholder,
                                     isPassword = row.isPassword,
                                     keyboardNumeric = row.keyboardNumeric,
+                                    multiline = row.multiline,
                                     enabled = row.enabled,
                                     onValueChange = { onInput(row, it) },
                                 )

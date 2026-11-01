@@ -166,12 +166,12 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
             26 -> shell.openPage("user_syns")
             27 -> handlers.route("external_video_player")
             28 -> shell.openPage("customize_menu")
-            30 -> shell.openPage("reader_mode")
+            30 -> shell.navigate(KsuReaderSettingsFragment())
             31 -> shell.navigate(KsuSearchSettingsFragment())
-            32 -> shell.openPage("toolbars_settings")
+            32 -> shell.navigate(KsuToolbarSettingsFragment())
             35 -> shell.navigate(KsuFontSettingsFragment())
             36 -> shell.navigate(KsuPasswordSettingsFragment())
-            37 -> shell.openPage("customize_context_menu")
+            37 -> shell.navigate(KsuContextMenuSettingsFragment())
         }
     }
 

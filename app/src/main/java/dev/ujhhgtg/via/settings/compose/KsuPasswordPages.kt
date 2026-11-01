@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import dev.ujhhgtg.via.R
 import dev.ujhhgtg.via.Shell
-import dev.ujhhgtg.via.passwords.PasswordListFragment
 import dev.ujhhgtg.via.passwords.PasswordPageOperations
 import dev.ujhhgtg.via.passwords.PasswordRepository
 import java.text.SimpleDateFormat
@@ -50,8 +49,8 @@ class KsuPasswordSettingsFragment : KsuPageFragment() {
     override fun onRow(row: KsuRow) {
         val shell = requireActivity() as Shell
         when (row.key) {
-            2 -> shell.navigate(PasswordListFragment())
-            5 -> shell.navigate(dev.ujhhgtg.via.passwords.PasswordIgnoredSitesFragment())
+            2 -> shell.navigate(KsuPasswordListSettingsFragment())
+            5 -> shell.navigate(KsuPasswordIgnoredSitesSettingsFragment())
             3 -> operations.launch(
                 Intent(Intent.ACTION_OPEN_DOCUMENT).setType("text/*").addCategory(Intent.CATEGORY_OPENABLE), IMPORT)
             4 -> exportPasswords()
