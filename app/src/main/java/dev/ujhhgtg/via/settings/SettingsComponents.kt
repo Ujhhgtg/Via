@@ -49,7 +49,7 @@ internal fun settingsCheckBox(context: Context, label: CharSequence, checked: Bo
         }
         setTextColor(settingsColor(context, R.attr.viaPrimaryTextColor, Color.BLACK))
         textSize = resources.getDimensionPixelSize(R.dimen.settings_row_title_size) / resources.displayMetrics.scaledDensity
-        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        typeface = BrowserPreferences(context).selectedTypeface()
         background = settingsRipple(context)
         changed?.let { setOnCheckedChangeListener { _, value -> it(value) } }
     }
@@ -83,7 +83,7 @@ class SettingsToolbar(context: Context, onBack: () -> Unit) : LinearLayout(conte
             setSingleLine(); maxLines = 1; ellipsize = TextUtils.TruncateAt.END
             gravity = Gravity.CENTER_VERTICAL
             textDirection = TEXT_DIRECTION_LOCALE
-            typeface = Typeface.create("sans-serif", Typeface.BOLD)
+            typeface = Typeface.create(BrowserPreferences(context).selectedTypeface(), Typeface.BOLD)
         }
         addView(titleView, LayoutParams(0, -2, 24f).apply { gravity = Gravity.CENTER_VERTICAL })
         addView(Space(context), LayoutParams(0, context.dp(54f), 1f))
@@ -98,7 +98,7 @@ class SettingsToolbar(context: Context, onBack: () -> Unit) : LinearLayout(conte
             setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_title_size).toFloat())
             setTextColor(settingsColor(context, R.attr.viaPrimaryTextColor, Color.BLACK))
             setSingleLine(); maxLines = 1; setLines(1); ellipsize = TextUtils.TruncateAt.END
-            gravity = Gravity.CENTER; isAllCaps = true; typeface = Typeface.create("sans-serif", Typeface.BOLD)
+            gravity = Gravity.CENTER; isAllCaps = true; typeface = BrowserPreferences(context).selectedTypeface()
         }
         view.setPadding(context.dp(13f), 0, context.dp(13f), 0)
         view.background = controlRipple(context)
@@ -168,13 +168,13 @@ private class SettingsRowView(context: Context) : LinearLayout(context) {
         setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_title_size).toFloat()); maxLines = 1; ellipsize = TextUtils.TruncateAt.END
         textDirection = TEXT_DIRECTION_LOCALE
         setTextColor(settingsColor(context, R.attr.viaPrimaryTextColor, Color.BLACK))
-        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        typeface = BrowserPreferences(context).selectedTypeface()
     }
     val summary = TextView(context).apply {
         setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_summary_size).toFloat()); maxLines = 3; ellipsize = TextUtils.TruncateAt.END
         textDirection = TEXT_DIRECTION_LOCALE
         setTextColor(settingsColor(context, R.attr.viaSecondaryTextColor, Color.GRAY))
-        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        typeface = BrowserPreferences(context).selectedTypeface()
     }
 
     init {
@@ -207,13 +207,13 @@ private class SettingsToggleView(context: Context, private val leading: Boolean 
         id = generateViewId(); setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_title_size).toFloat()); setSingleLine(); maxLines = 1
         ellipsize = TextUtils.TruncateAt.END; textDirection = TEXT_DIRECTION_LOCALE
         setTextColor(settingsColor(context, R.attr.viaPrimaryTextColor, Color.BLACK))
-        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        typeface = BrowserPreferences(context).selectedTypeface()
     }
     private val summary = TextView(context).apply {
         setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_summary_size).toFloat()); maxLines = 3; ellipsize = TextUtils.TruncateAt.END
         textDirection = TEXT_DIRECTION_LOCALE
         setTextColor(settingsColor(context, R.attr.viaSecondaryTextColor, Color.GRAY))
-        typeface = Typeface.create("sans-serif", Typeface.BOLD)
+        typeface = BrowserPreferences(context).selectedTypeface()
     }
     private val checkBox = android.widget.CheckBox(context).apply {
         id = generateViewId(); isClickable = false; isFocusable = false
@@ -278,7 +278,7 @@ class SettingsRowsAdapter(private val onClick: (SettingsRow) -> Unit) : Recycler
                 setPadding(context.dp(16f), context.dp(12f), context.dp(16f), context.dp(4f))
                 setTextColor(settingsColor(context, R.attr.viaAccentColor, Color.BLUE))
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, resources.getDimensionPixelSize(R.dimen.settings_row_summary_size).toFloat())
-                typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                typeface = Typeface.create(BrowserPreferences(context).selectedTypeface(), Typeface.BOLD)
                 textDirection = View.TEXT_DIRECTION_LOCALE
             }
             4 -> dev.ujhhgtg.via.reader.ReaderColorPalette(parent.context, 0,

@@ -48,9 +48,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.style.TextAlign
@@ -66,16 +63,6 @@ import dev.ujhhgtg.via.R
  */
 
 private val LocalListItemShapes = compositionLocalOf<ListItemShapes?> { null }
-
-/** ListItem rows use token-based typography that ignores MaterialTheme.typography, so the
- *  settings rows get their Roboto Bold explicitly. */
-@Composable
-private fun ksuBoldTitle(): TextStyle = MaterialTheme.typography.bodyLarge.copy(
-    fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)
-
-@Composable
-private fun ksuBoldSummary(): TextStyle = MaterialTheme.typography.bodyMedium.copy(
-    fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -158,7 +145,7 @@ fun KsuNavItem(
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = ksuBoldSummary(),
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.End,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -166,10 +153,10 @@ fun KsuNavItem(
                 )
             }
         },
-        supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+        supportingContent = summary?.let { { Text(it) } },
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
-        content = { Text(title, style = ksuBoldTitle()) },
+        content = { Text(title) },
     )
 }
 
@@ -202,11 +189,11 @@ fun KsuSwitchItem(
                 interactionSource = interactionSource,
             )
         },
-        supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+        supportingContent = summary?.let { { Text(it) } },
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
         interactionSource = interactionSource,
-        content = { Text(title, style = ksuBoldTitle()) },
+        content = { Text(title) },
     )
 }
 
@@ -315,17 +302,17 @@ fun KsuSwitchNavItem(
                     interactionSource = interactionSource,
                 )
             },
-            supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+            supportingContent = summary?.let { { Text(it) } },
             verticalAlignment = Alignment.CenterVertically,
             colors = defaultSegmentedColors(),
             interactionSource = interactionSource,
-            content = { Text(title, style = ksuBoldTitle()) },
+            content = { Text(title) },
         )
         if (actions.isNotEmpty()) {
             KsuExpressiveMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorOffset = menuAnchor) {
                 actions.forEachIndexed { index, action ->
                     DropdownMenuItem(
-                        text = { Text(action.label, style = ksuBoldTitle()) },
+                        text = { Text(action.label) },
                         onClick = { menuExpanded = false; onAction(action) },
                         shape = MenuDefaults.itemShape(index = index, count = actions.size).shape,
                     )
@@ -355,17 +342,17 @@ fun KsuDropdownItem(
             shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
             enabled = enabled,
             leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
-            supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+            supportingContent = summary?.let { { Text(it) } },
             trailingContent = {
                 Text(
                     text = items.getOrNull(selectedIndex).orEmpty(),
                     color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = ksuBoldSummary(),
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             },
             verticalAlignment = Alignment.CenterVertically,
             colors = defaultSegmentedColors(),
-            content = { Text(title, style = ksuBoldTitle()) },
+            content = { Text(title) },
         )
         if (items.isNotEmpty()) {
             KsuExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorOffset = anchor) {
@@ -405,11 +392,11 @@ fun KsuCheckItem(
                 interactionSource = interactionSource,
             )
         },
-        supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+        supportingContent = summary?.let { { Text(it) } },
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
         interactionSource = interactionSource,
-        content = { Text(title, style = ksuBoldTitle()) },
+        content = { Text(title) },
     )
 }
 
@@ -434,7 +421,7 @@ fun KsuInputItem(
         shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
         enabled = enabled,
         leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
-        supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+        supportingContent = summary?.let { { Text(it) } },
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
         content = {
@@ -447,8 +434,8 @@ fun KsuInputItem(
                 onValueChange = { text = it; onValueChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
-                label = { Text(title, style = ksuBoldTitle()) },
-                placeholder = placeholder?.let { { Text(it, style = ksuBoldSummary()) } },
+                label = { Text(title) },
+                placeholder = placeholder?.let { { Text(it) } },
                 singleLine = !multiline,
                 maxLines = if (multiline) 8 else 1,
                 textStyle = MaterialTheme.typography.bodyLarge,
@@ -505,16 +492,16 @@ fun KsuRadioItem(
                     RadioButton(selected = selected, onClick = null, enabled = enabled)
                 }
             },
-            supportingContent = summary?.let { { Text(it, style = ksuBoldSummary()) } },
+            supportingContent = summary?.let { { Text(it) } },
             verticalAlignment = Alignment.CenterVertically,
             colors = defaultSegmentedColors(),
-            content = { Text(title, style = ksuBoldTitle()) },
+            content = { Text(title) },
         )
         if (actions.isNotEmpty()) {
             KsuExpressiveMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, anchorOffset = menuAnchor) {
                 actions.forEachIndexed { index, action ->
                     DropdownMenuItem(
-                        text = { Text(action.label, style = ksuBoldTitle()) },
+                        text = { Text(action.label) },
                         onClick = { menuExpanded = false; onAction(action) },
                         shape = MenuDefaults.itemShape(index = index, count = actions.size).shape,
                     )

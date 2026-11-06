@@ -9,14 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.fragment.app.Fragment
 import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.settings.SettingsSwipeBack
@@ -133,76 +129,69 @@ abstract class KsuPageFragment : Fragment() {
                 val revisionKey = revision
                 val preferences = remember { BrowserPreferences(context) }
                 ViaKsuTheme(darkTheme = preferences.isNightMode) {
-                    ProvideTextStyle(
-                        value = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.SansSerif,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    ) {
-                        KsuSettingsPage(
-                            title = pageTitle(),
-                            groups = remember(revisionKey) { groups() },
-                            onBack = ::onBack,
-                            onRowClick = ::onRow,
-                            onToggle = ::onToggle,
-                            onSwitchRow = ::onSwitchRow,
-                            onSelect = ::onSelect,
-                            onAction = ::onAction,
-                            onCheck = ::onCheck,
-                            onRadio = ::onRadio,
-                            onRadioAction = ::onRadioAction,
-                            onInput = ::onInput,
-                            onTopMenuAction = ::onTopMenuAction,
-                            topActions = remember(revisionKey) { topActions() },
-                            header = header(),
+                    KsuSettingsPage(
+                        title = pageTitle(),
+                        groups = remember(revisionKey) { groups() },
+                        onBack = ::onBack,
+                        onRowClick = ::onRow,
+                        onToggle = ::onToggle,
+                        onSwitchRow = ::onSwitchRow,
+                        onSelect = ::onSelect,
+                        onAction = ::onAction,
+                        onCheck = ::onCheck,
+                        onRadio = ::onRadio,
+                        onRadioAction = ::onRadioAction,
+                        onInput = ::onInput,
+                        onTopMenuAction = ::onTopMenuAction,
+                        topActions = remember(revisionKey) { topActions() },
+                        header = header(),
+                    )
+                    confirmRequest?.let { request ->
+                        KsuConfirmDialog(
+                            title = request.title,
+                            message = request.message,
+                            confirmText = request.confirmText,
+                            dismissText = request.dismissText,
+                            onConfirm = { confirmRequest = null; request.onConfirm() },
+                            onDismiss = { confirmRequest = null },
                         )
-                        confirmRequest?.let { request ->
-                            KsuConfirmDialog(
-                                title = request.title,
-                                message = request.message,
-                                confirmText = request.confirmText,
-                                dismissText = request.dismissText,
-                                onConfirm = { confirmRequest = null; request.onConfirm() },
-                                onDismiss = { confirmRequest = null },
-                            )
-                        }
-                        inputRequest?.let { request ->
-                            KsuInputDialog(
-                                title = request.title,
-                                initial = request.initial,
-                                hint = request.hint,
-                                isPassword = request.isPassword,
-                                confirmText = getString(android.R.string.ok),
-                                onConfirm = { inputRequest = null; request.onConfirm(it) },
-                                onDismiss = { inputRequest = null },
-                            )
-                        }
-                        messageRequest?.let { request ->
-                            KsuMessageDialog(
-                                title = request.title,
-                                message = request.message,
-                                okText = request.okText,
-                                onOk = request.onOk,
-                            )
-                        }
-                        itemsRequest?.let { request ->
-                            KsuItemsDialog(
-                                title = request.title,
-                                items = request.items,
-                                onSelect = { itemsRequest = null; request.onSelect(it) },
-                                onDismiss = { itemsRequest = null },
-                            )
-                        }
-                        multiChoiceRequest?.let { request ->
-                            KsuMultiChoiceDialog(
-                                title = request.title,
-                                items = request.items,
-                                selected = request.selected,
-                                okText = getString(android.R.string.ok),
-                                onConfirm = { multiChoiceRequest = null; request.onConfirm(it) },
-                                onDismiss = { multiChoiceRequest = null },
-                            )
-                        }
+                    }
+                    inputRequest?.let { request ->
+                        KsuInputDialog(
+                            title = request.title,
+                            initial = request.initial,
+                            hint = request.hint,
+                            isPassword = request.isPassword,
+                            confirmText = getString(android.R.string.ok),
+                            onConfirm = { inputRequest = null; request.onConfirm(it) },
+                            onDismiss = { inputRequest = null },
+                        )
+                    }
+                    messageRequest?.let { request ->
+                        KsuMessageDialog(
+                            title = request.title,
+                            message = request.message,
+                            okText = request.okText,
+                            onOk = request.onOk,
+                        )
+                    }
+                    itemsRequest?.let { request ->
+                        KsuItemsDialog(
+                            title = request.title,
+                            items = request.items,
+                            onSelect = { itemsRequest = null; request.onSelect(it) },
+                            onDismiss = { itemsRequest = null },
+                        )
+                    }
+                    multiChoiceRequest?.let { request ->
+                        KsuMultiChoiceDialog(
+                            title = request.title,
+                            items = request.items,
+                            selected = request.selected,
+                            okText = getString(android.R.string.ok),
+                            onConfirm = { multiChoiceRequest = null; request.onConfirm(it) },
+                            onDismiss = { multiChoiceRequest = null },
+                        )
                     }
                 }
             }
