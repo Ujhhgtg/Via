@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.aboutlibraries.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -86,6 +87,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     testOptions {
@@ -116,6 +118,12 @@ dependencies {
     implementation(libs.tinypinyin)
 
     implementation(libs.aboutlibraries.core)
+
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.androidx.activity.compose)
 
     testImplementation(libs.junit)
 }

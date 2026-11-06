@@ -86,6 +86,8 @@ class BrowserPreferences(context: Context) {
     var hardwareShortcut: Int get() = int("hwshorcut", 0); set(value) = putInt("hwshorcut", value)
     var ignoredSslWarning: Int get() = int("ignoredsslwarning", 0); set(value) = putInt("ignoredsslwarning", value)
     var labFlags: Int get() = int("labflag", 0); set(value) = putInt("labflag", value)
+    /** Experimental KernelSU-style settings root (Compose); the classic pages stay the default. */
+    var ksuSettingsUi: Boolean get() = getBoolean("ksu_settings_ui", false); set(value) = putBoolean("ksu_settings_ui", value)
     var logoChoice: Int get() = int("logochioce", 0); set(value) = putInt("logochioce", value)
     var logoInfo: Int get() = int("logoinfo2", 193766400); set(value) = putInt("logoinfo2", value)
     var readAloudSpeedPercent: Int get() = int("readaloudspeed", 100); set(value) = putInt("readaloudspeed", value)

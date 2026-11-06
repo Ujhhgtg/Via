@@ -92,7 +92,38 @@ open class Shell : ViaActivity() {
             .hide(current).addToBackStack(null).commit()
     }
 
-    fun openSettings(action: String? = null) = navigate(SettingsFragment.newInstance(action))
+    /**
+     * With the KernelSU-style page enabled the settings root and the ported sub-pages are Compose;
+     * every other action keeps its classic fragment.
+     */
+    fun openSettings(action: String? = null) {
+        val ported = dev.ujhhgtg.via.data.BrowserPreferences(this).ksuSettingsUi
+        val fragment = when {
+            !ported -> SettingsFragment.newInstance(action)
+            action == null || action == "settings" -> dev.ujhhgtg.via.settings.compose.KsuSettingsFragment()
+            action == "settings_general" -> dev.ujhhgtg.via.settings.compose.KsuGeneralSettingsFragment()
+            action == "settings_privacy" -> dev.ujhhgtg.via.settings.compose.KsuPrivacySettingsFragment()
+            action == "settings_advanced" -> dev.ujhhgtg.via.settings.compose.KsuAdvancedSettingsFragment()
+            action == "settings_about" -> dev.ujhhgtg.via.settings.compose.KsuAboutSettingsFragment()
+            action == "settings_script" -> dev.ujhhgtg.via.settings.compose.KsuScriptSettingsFragment()
+            action == "settings_extensions" -> dev.ujhhgtg.via.settings.compose.KsuExtensionSettingsFragment()
+            action == "search_settings" -> dev.ujhhgtg.via.settings.compose.KsuSearchSettingsFragment()
+            action == "agent" -> dev.ujhhgtg.via.settings.compose.KsuUserAgentSettingsFragment()
+            action == "action_night" -> dev.ujhhgtg.via.settings.compose.KsuNightModeSettingsFragment()
+            action == "block_ads" -> dev.ujhhgtg.via.settings.compose.KsuBlockAdsSettingsFragment()
+            action == "settings_operation" -> dev.ujhhgtg.via.settings.compose.KsuGesturesSettingsFragment()
+            action == "font" -> dev.ujhhgtg.via.settings.compose.KsuFontSettingsFragment()
+            action == "password_manager" -> dev.ujhhgtg.via.settings.compose.KsuPasswordSettingsFragment()
+            action == "customize_context_menu" -> dev.ujhhgtg.via.settings.compose.KsuContextMenuSettingsFragment()
+            action == "reader_mode" -> dev.ujhhgtg.via.settings.compose.KsuReaderSettingsFragment()
+            action == "toolbars_settings" -> dev.ujhhgtg.via.settings.compose.KsuToolbarSettingsFragment()
+            action == "customize_menu" -> dev.ujhhgtg.via.settings.compose.KsuMenuCustomizationSettingsFragment()
+            action == "site_conf" -> dev.ujhhgtg.via.settings.compose.KsuSiteConfSettingsFragment()
+            action == "user_syns" -> dev.ujhhgtg.via.settings.compose.KsuSyncSettingsFragment()
+            else -> SettingsFragment.newInstance(action)
+        }
+        navigate(fragment)
+    }
 
     fun openPage(action: String) {
         when (action.substringBefore(':')) {

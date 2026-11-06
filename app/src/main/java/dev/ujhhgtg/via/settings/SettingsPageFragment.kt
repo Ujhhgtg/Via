@@ -1,15 +1,11 @@
 package dev.ujhhgtg.via.settings
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.activity.BackEventCompat
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import dev.ujhhgtg.via.data.BrowserPreferences
 import dev.ujhhgtg.via.ui.SwipeBackLayout
 import dev.ujhhgtg.via.ui.BrowserBackgrounds
 import dev.ujhhgtg.via.ui.dp
@@ -41,32 +37,10 @@ abstract class SettingsPageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // z8.n3.h: original bool is false by default, true in values-v35; HONOR/HUAWEI excluded.
-        if (predictiveBackSupported()) {
-            val swipe = view as SwipeBackLayout
-            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-                private var predictive = false
-                override fun handleOnBackStarted(backEvent: BackEventCompat) {
-                    if (!predictive && !BrowserPreferences(requireContext()).disablePredictiveBack && allowPredictiveBack() && this@SettingsPageFragment.view != null) {
-                        predictive = swipe.startPredictiveBack()
-                    }
-                }
-                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
-                    if (predictive) swipe.updatePredictiveBack(backEvent.progress)
-                }
-                override fun handleOnBackCancelled() {
-                    if (predictive) { swipe.cancelPredictiveBack(); predictive = false }
-                }
-                override fun handleOnBackPressed() {
-                    if (predictive) { predictive = false; swipe.finishPredictiveBack() }
-                    else onToolbarBack()
-                }
-            })
-        }
+        SettingsSwipeBack.install(this, view as SwipeBackLayout, ::allowPredictiveBack, ::onToolbarBack)
     }
 
-    protected fun predictiveBackSupported(): Boolean = Build.VERSION.SDK_INT >= 35 &&
-        listOf(Build.BRAND, Build.MANUFACTURER).none { it.equals("HONOR", true) || it.equals("HUAWEI", true) }
+    protected fun predictiveBackSupported(): Boolean = SettingsSwipeBack.predictiveBackSupported()
 
     protected abstract fun configureToolbar(toolbar: SettingsToolbar)
     protected abstract fun createContent(inflater: LayoutInflater, container: ViewGroup?): View
