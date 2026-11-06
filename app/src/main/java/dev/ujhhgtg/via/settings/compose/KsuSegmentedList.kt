@@ -94,7 +94,7 @@ fun KsuSegmentedColumn(
     Column(modifier = modifier.fillMaxWidth()) {
         if (!title.isNullOrEmpty()) Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleSmallEmphasized,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
         )
