@@ -49,8 +49,7 @@ class KsuScriptEditorSettingsFragment : KsuPageFragment() {
     private fun save() {
         val parsed = UserScript.parse(source, downloadUrl)
         if (parsed == null) {
-            ViaDialog(requireActivity()).title(R.string.title_add_metadata_block).message(R.string.message_add_metadata_block)
-                .positive(android.R.string.ok).show()
+            showMessage(getString(R.string.title_add_metadata_block), getString(R.string.message_add_metadata_block))
             return
         }
         val context = requireContext().applicationContext
@@ -143,13 +142,14 @@ class KsuScriptDetailsSettingsFragment : KsuPageFragment() {
                 val name = script.resources.keys.toList().getOrNull((row.key as Int) - 300)
                 name?.let { (requireActivity() as Shell).navigate(KsuScriptResourceSettingsFragment.newInstance(script.id, it)) }
             } else if (row.key == INFO) {
-                ViaDialog(requireActivity()).title(script.name).message(
+                showMessage(
+                    script.name,
                     listOfNotNull(
                         script.version?.let { "Version: $it" },
                         script.description,
                         script.downloadUrl?.let { "Source: $it" },
                     ).joinToString("\n"),
-                ).positive(android.R.string.ok).show()
+                )
             }
         }
     }

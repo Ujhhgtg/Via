@@ -95,9 +95,12 @@ class KsuSyncSettingsFragment : KsuPageFragment() {
     }
 
     private fun logout() {
-        ViaDialog(requireActivity()).title(R.string.log_out).message(preferences.languageUserName)
-            .positive(android.R.string.ok) { _, _ -> preferences.login = false; refresh() }
-            .negative(android.R.string.cancel).show()
+        confirm(
+            title = getString(R.string.log_out),
+            message = preferences.languageUserName,
+            confirmText = getString(android.R.string.ok),
+            dismissText = getString(android.R.string.cancel),
+        ) { preferences.login = false; refresh() }
     }
 
     private fun syncCloud() {
@@ -110,32 +113,45 @@ class KsuSyncSettingsFragment : KsuPageFragment() {
     private fun uploadCloud() = syncCloud()
 
     private fun deleteAccount() {
-        ViaDialog(requireActivity()).title(R.string.delete_account).message(R.string.delete_account_message)
-            .input("", getString(R.string.hint_password), 1).negative(android.R.string.cancel)
-            .positive(R.string.confirm_to_delete) { _, result ->
-                val password = result.edit?.firstOrNull().orEmpty()
+        confirm(
+            title = getString(R.string.delete_account),
+            message = getString(R.string.delete_account_message),
+            confirmText = getString(R.string.confirm_to_delete),
+            dismissText = getString(android.R.string.cancel),
+        ) {
+            showInput(
+                title = getString(R.string.delete_account),
+                initial = "",
+                hint = getString(R.string.hint_password),
+                isPassword = true,
+            ) { password ->
                 val stored = preferences.getString("userpsw", "").orEmpty()
                 if (password.isEmpty()) ViaToast.makeText(requireContext(), getString(R.string.empty_password_info), ViaToast.LENGTH_SHORT).show()
                 else if (CloudAccountClient.passwordHash(password) != stored) {
                     ViaToast.makeText(requireContext(), getString(R.string.wrong_psw), ViaToast.LENGTH_SHORT).show()
-                } else Unit
-            }.show()
+                } else ViaToast.makeText(requireContext(), getString(R.string.delete_account_request_submitted), ViaToast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun manualSync() {
         val saved = configuration.read()?.takeIf { it.isConfigured } ?: return
-        ViaDialog(requireActivity()).title(R.string.sync_manually).items(
-            arrayOf(getString(R.string.sync_push_description), getString(R.string.sync_pull_description), getString(R.string.sync_merge_description)),
-            onClick = { index ->
-                val operation = when (index) {
-                    0 -> WebDavSync.Operation.PUSH
-                    1 -> WebDavSync.Operation.PULL
-                    else -> WebDavSync.Operation.SYNC
-                }
-                if (saved.sections == 0) (requireActivity() as dev.ujhhgtg.via.Shell).navigate(KsuSyncSectionsSettingsFragment())
-                else runSync(operation)
-            },
-        ).show()
+        showItems(
+            title = getString(R.string.sync_manually),
+            items = listOf(
+                getString(R.string.sync_push_description),
+                getString(R.string.sync_pull_description),
+                getString(R.string.sync_merge_description),
+            ),
+        ) { index ->
+            val operation = when (index) {
+                0 -> WebDavSync.Operation.PUSH
+                1 -> WebDavSync.Operation.PULL
+                else -> WebDavSync.Operation.SYNC
+            }
+            if (saved.sections == 0) (requireActivity() as dev.ujhhgtg.via.Shell).navigate(KsuSyncSectionsSettingsFragment())
+            else runSync(operation)
+        }
     }
 
     private fun runSync(operation: WebDavSync.Operation) {
@@ -146,8 +162,7 @@ class KsuSyncSettingsFragment : KsuPageFragment() {
             if (!isAdded) return@run
             result.onSuccess { failures ->
                 if (failures.isEmpty()) ViaToast.makeText(requireContext(), getString(R.string.sync_done), ViaToast.LENGTH_LONG).show()
-                else ViaDialog(requireActivity()).title(R.string.sync_failed)
-                    .message(failures.joinToString("\n") { it.description }).positive(android.R.string.ok).show()
+                else showMessage(getString(R.string.sync_failed), failures.joinToString("\n") { it.description })
                 refresh()
             }
         }

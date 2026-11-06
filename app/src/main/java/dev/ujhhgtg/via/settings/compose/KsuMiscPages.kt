@@ -156,9 +156,7 @@ class KsuExtensionDetailsSettingsFragment : KsuPageFragment() {
                     else getString(R.string.update_extensions_completed), ViaToast.LENGTH_SHORT).show()
             } catch (error: ExtensionInstallError) {
                 if (error.kind != ExtensionInstallError.Kind.CANCELED && isAdded) {
-                    ViaDialog(requireActivity()).title(R.string.extension_install_failed)
-                        .message(ExtensionHost.errorMessage(requireContext(), error))
-                        .positive(android.R.string.ok).show()
+                    showMessage(getString(R.string.extension_install_failed), ExtensionHost.errorMessage(requireContext(), error))
                 }
             }
             load()

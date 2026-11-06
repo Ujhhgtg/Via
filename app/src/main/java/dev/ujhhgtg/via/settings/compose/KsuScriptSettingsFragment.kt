@@ -117,9 +117,9 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
             else -> {
                 val script = scripts.firstOrNull { it.id == row.key } ?: return
                 if (script.content.isEmpty()) {
-                    ViaDialog(requireActivity()).title(script.name).message(R.string.request_to_download_full_script)
-                        .positive(android.R.string.ok) { _, _ -> script.downloadUrl?.let { importUrl(it, script.id) } }
-                        .negative(android.R.string.cancel).show()
+                    showMessage(script.name, getString(R.string.request_to_download_full_script), onOk = {
+                        script.downloadUrl?.let { importUrl(it, script.id) }
+                    })
                 } else openDetails(script.id)
             }
         }
@@ -165,11 +165,14 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
     }
 
     private fun importFromUrl() {
-        ViaDialog(requireActivity()).title(R.string.import_script_from_url).input("", getString(R.string.info_url), 1)
-            .positive(android.R.string.ok) { _, result ->
-                val url = result.edit?.firstOrNull()?.trim().orEmpty()
-                if (android.webkit.URLUtil.isNetworkUrl(url)) importUrl(url) else toast(R.string.url_is_invalid)
-            }.show()
+        showInput(
+            title = getString(R.string.import_script_from_url),
+            initial = "",
+            hint = getString(R.string.info_url),
+        ) { raw ->
+            val url = raw.trim()
+            if (android.webkit.URLUtil.isNetworkUrl(url)) importUrl(url) else toast(R.string.url_is_invalid)
+        }
     }
 
     private fun importUrl(url: String, id: Int = 0) = installer.fromSettingsUrl(url, id, ::onInstalled)
@@ -178,12 +181,8 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
         if (updating) return
         val candidates = scripts.filter { it.enabled && it.downloadUrl?.let(android.webkit.URLUtil::isNetworkUrl) == true }
         if (candidates.isEmpty()) return
-        val dialog = ViaDialog(requireActivity()).title(R.string.update)
-        if (candidates.size == 1) dialog.message(getString(R.string.request_item_update, candidates[0].name))
-        else dialog.multipleChoice(candidates.map { it.name }.toTypedArray(), IntArray(candidates.size) { it })
-        dialog.positive(android.R.string.ok) { _, result ->
-            val selected = if (candidates.size == 1) candidates else (result.selected ?: intArrayOf()).toList().mapNotNull(candidates::getOrNull)
-            if (selected.isEmpty()) return@positive
+        val perform: (List<UserScript>) -> Unit = { selected ->
+            if (selected.isNotEmpty()) {
             updating = true
             toast(R.string.update_pending)
             worker.execute {
@@ -194,7 +193,22 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
                 manager.cleanupResources()
                 onUi { updating = false; toast(R.string.update_scripts_completed) }
             }
-        }.negative(android.R.string.cancel).show()
+            }
+        }
+        if (candidates.size == 1) {
+            confirm(
+                title = getString(R.string.update),
+                message = getString(R.string.request_item_update, candidates[0].name),
+                confirmText = getString(android.R.string.ok),
+                dismissText = getString(android.R.string.cancel),
+            ) { perform(candidates) }
+        } else {
+            showMultiChoice(
+                title = getString(R.string.update),
+                items = candidates.map { it.name },
+                selected = candidates.indices.toSet(),
+            ) { selectedIndexes -> perform(selectedIndexes.mapNotNull(candidates::getOrNull)) }
+        }
     }
 
     private fun openEditor() {
@@ -220,12 +234,16 @@ class KsuScriptSettingsFragment : KsuPageFragment() {
     }
 
     private fun deleteScript(script: UserScript) {
-        ViaDialog(requireActivity()).title(R.string.action_delete).message(getString(R.string.delete_item_message, script.name))
-            .positive(android.R.string.ok) { _, _ ->
-                scripts = scripts.filterNot { it.id == script.id }
-                refresh()
-                worker.execute { manager.remove(script.id); manager.cleanupResources() }
-            }.negative(android.R.string.cancel).show()
+        confirm(
+            title = getString(R.string.action_delete),
+            message = getString(R.string.delete_item_message, script.name),
+            confirmText = getString(android.R.string.ok),
+            dismissText = getString(android.R.string.cancel),
+        ) {
+            scripts = scripts.filterNot { it.id == script.id }
+            refresh()
+            worker.execute { manager.remove(script.id); manager.cleanupResources() }
+        }
     }
 
     private fun copyLink(url: String?) {

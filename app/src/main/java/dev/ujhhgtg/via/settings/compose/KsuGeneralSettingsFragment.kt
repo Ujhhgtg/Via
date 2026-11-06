@@ -230,11 +230,15 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
         val tags = languageTags()
         preferences.language = tags.getOrNull(index - 1)
         refresh()
-        ViaDialog(requireActivity()).title(R.string.language).message(R.string.restart_to_take_effect)
-            .positive(R.string.crash_restart) { _, _ ->
-                startActivity(Intent.makeRestartActivityTask(android.content.ComponentName(requireActivity(), Shell::class.java)).setPackage(requireContext().packageName))
-                kotlin.system.exitProcess(0)
-            }.negative(android.R.string.cancel).show()
+        confirm(
+            title = getString(R.string.language),
+            message = getString(R.string.restart_to_take_effect),
+            confirmText = getString(R.string.crash_restart),
+            dismissText = getString(android.R.string.cancel),
+        ) {
+            startActivity(Intent.makeRestartActivityTask(android.content.ComponentName(requireActivity(), Shell::class.java)).setPackage(requireContext().packageName))
+            kotlin.system.exitProcess(0)
+        }
     }
 
     private fun applyHome(index: Int) {
@@ -248,15 +252,15 @@ class KsuGeneralSettingsFragment : KsuPageFragment() {
     }
 
     private fun editHomepage() {
-        ViaDialog(requireActivity()).title(R.string.title_custom_homepage)
-            .input(preferences.home.takeUnless { it.startsWith("about:") } ?: "https://m.baidu.com/?tn=&from=1022560v",
-                getString(R.string.title_custom_homepage), 3)
-            .positive(android.R.string.ok) { _, result ->
-                val raw = result.edit?.firstOrNull()?.trim().orEmpty()
-                val normalized = dev.ujhhgtg.via.browser.UrlResolver.normalizeInput(raw, null)
-                if (normalized != null && normalized.contains("://")) preferences.home = normalized
-                refresh()
-            }.negative(android.R.string.cancel).show()
+        showInput(
+            title = getString(R.string.title_custom_homepage),
+            initial = preferences.home.takeUnless { it.startsWith("about:") } ?: "https://m.baidu.com/?tn=&from=1022560v",
+            hint = getString(R.string.title_custom_homepage),
+        ) { raw ->
+            val normalized = dev.ujhhgtg.via.browser.UrlResolver.normalizeInput(raw.trim(), null)
+            if (normalized != null && normalized.contains("://")) preferences.home = normalized
+            refresh()
+        }
     }
 
     private fun refreshExternalApps() {

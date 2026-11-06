@@ -125,13 +125,16 @@ class KsuFilterSubscriptionsSettingsFragment : KsuPageFragment() {
     }
 
     private fun edit(subscription: FilterStore.Subscription) {
-        ViaDialog(requireActivity()).title(R.string.action_edit).input(subscription.url, subscription.url, 1)
-            .positive(android.R.string.ok) { _, result ->
-                val url = result.edit?.firstOrNull()?.trim().orEmpty()
-                if (url.isEmpty()) return@positive
-                records = records.map { if (it.url == subscription.url) it.copy(url = url) else it }
-                persist()
-            }.negative(android.R.string.cancel).show()
+        showInput(
+            title = getString(R.string.action_edit),
+            initial = subscription.url,
+            hint = subscription.url,
+        ) { raw ->
+            val url = raw.trim()
+            if (url.isEmpty()) return@showInput
+            records = records.map { if (it.url == subscription.url) it.copy(url = url) else it }
+            persist()
+        }
     }
 
     private fun persist() {

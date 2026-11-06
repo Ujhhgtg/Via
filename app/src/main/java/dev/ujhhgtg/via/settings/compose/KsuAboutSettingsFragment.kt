@@ -72,8 +72,9 @@ class KsuAboutSettingsFragment : KsuPageFragment() {
     }
 
     private fun versionDialog() {
-        ViaDialog(requireActivity()).title(BuildConfig.VERSION_NAME)
-            .message(if (Locale.getDefault().country.equals("CN", true)) "莫忧世事兼身事，须著人间比梦间。" else "Less is more.")
-            .positive(android.R.string.ok).show()
+        showMessage(
+            BuildConfig.VERSION_NAME,
+            if (Locale.getDefault().country.equals("CN", true)) "莫忧世事兼身事，须著人间比梦间。" else "Less is more.",
+        )
     }
 }

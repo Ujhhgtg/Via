@@ -220,8 +220,12 @@ class KsuSearchProviderEditorSettingsFragment : KsuPageFragment() {
     private fun save(confirm: Boolean) {
         if (unchanged()) { closeEditor(); return }
         if (confirm) {
-            ViaDialog(requireActivity()).title(R.string.message).message(R.string.modified_content_has_not_been_saved_message)
-                .positive(R.string.save_and_exit) { _, _ -> save(false) }.negative(R.string.exit) { closeEditor() }.show()
+            confirm(
+                title = getString(R.string.message),
+                message = getString(R.string.modified_content_has_not_been_saved_message),
+                confirmText = getString(R.string.save_and_exit),
+                dismissText = getString(R.string.exit),
+            ) { save(false) }
             return
         }
         val shortcut = shortcutText()

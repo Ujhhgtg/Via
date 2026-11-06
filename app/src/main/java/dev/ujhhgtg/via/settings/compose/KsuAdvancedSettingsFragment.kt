@@ -47,8 +47,7 @@ class KsuAdvancedSettingsFragment : KsuPageFragment() {
             1 -> preferences.showSnifferButton = checked
             3 -> {
                 preferences.webPageDebug = checked
-                if (checked) ViaDialog(requireActivity()).title(R.string.web_page_debug).message(R.string.web_page_debug_info)
-                    .positive(android.R.string.ok).show()
+                if (checked) showMessage(getString(R.string.web_page_debug), getString(R.string.web_page_debug_info))
             }
             5 -> preferences.safeBrowsing = !checked
             7 -> preferences.disableCustomTabs = checked

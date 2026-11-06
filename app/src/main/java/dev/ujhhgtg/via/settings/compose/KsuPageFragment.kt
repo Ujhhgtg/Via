@@ -28,6 +28,10 @@ import dev.ujhhgtg.via.ui.dp
 abstract class KsuPageFragment : Fragment() {
     private var revision by mutableIntStateOf(0)
     private var confirmRequest by mutableStateOf<ConfirmRequest?>(null)
+    private var inputRequest by mutableStateOf<InputRequest?>(null)
+    private var messageRequest by mutableStateOf<MessageRequest?>(null)
+    private var itemsRequest by mutableStateOf<ItemsRequest?>(null)
+    private var multiChoiceRequest by mutableStateOf<MultiChoiceRequest?>(null)
 
     /** A KernelSU-style confirmation dialog, rendered above the page. */
     protected class ConfirmRequest(
@@ -38,8 +42,44 @@ abstract class KsuPageFragment : Fragment() {
         val onConfirm: () -> Unit,
     )
 
+    protected class InputRequest(
+        val title: String,
+        val initial: String,
+        val hint: String?,
+        val isPassword: Boolean,
+        val onConfirm: (String) -> Unit,
+    )
+
+    protected class MessageRequest(val title: String, val message: String, val okText: String, val onOk: () -> Unit)
+
+    protected class ItemsRequest(val title: String, val items: List<String>, val onSelect: (Int) -> Unit)
+
+    protected class MultiChoiceRequest(
+        val title: String,
+        val items: List<String>,
+        val selected: Set<Int>,
+        val onConfirm: (Set<Int>) -> Unit,
+    )
+
     protected fun confirm(title: String, message: String?, confirmText: String, dismissText: String? = null, onConfirm: () -> Unit) {
         confirmRequest = ConfirmRequest(title, message, confirmText, dismissText, onConfirm)
+    }
+
+    /** MD3 input dialog; the confirm callback receives the field text. */
+    protected fun showInput(title: String, initial: String, hint: String? = null, isPassword: Boolean = false, onConfirm: (String) -> Unit) {
+        inputRequest = InputRequest(title, initial, hint, isPassword, onConfirm)
+    }
+
+    protected fun showMessage(title: String, message: String, okText: String = getString(android.R.string.ok), onOk: (() -> Unit)? = null) {
+        messageRequest = MessageRequest(title, message, okText) { messageRequest = null; onOk?.invoke() }
+    }
+
+    protected fun showItems(title: String, items: List<String>, onSelect: (Int) -> Unit) {
+        itemsRequest = ItemsRequest(title, items, onSelect)
+    }
+
+    protected fun showMultiChoice(title: String, items: List<String>, selected: Set<Int>, onConfirm: (Set<Int>) -> Unit) {
+        multiChoiceRequest = MultiChoiceRequest(title, items, selected, onConfirm)
     }
 
     @get:StringRes
@@ -114,6 +154,43 @@ abstract class KsuPageFragment : Fragment() {
                             dismissText = request.dismissText,
                             onConfirm = { confirmRequest = null; request.onConfirm() },
                             onDismiss = { confirmRequest = null },
+                        )
+                    }
+                    inputRequest?.let { request ->
+                        KsuInputDialog(
+                            title = request.title,
+                            initial = request.initial,
+                            hint = request.hint,
+                            isPassword = request.isPassword,
+                            confirmText = getString(android.R.string.ok),
+                            onConfirm = { inputRequest = null; request.onConfirm(it) },
+                            onDismiss = { inputRequest = null },
+                        )
+                    }
+                    messageRequest?.let { request ->
+                        KsuMessageDialog(
+                            title = request.title,
+                            message = request.message,
+                            okText = request.okText,
+                            onOk = request.onOk,
+                        )
+                    }
+                    itemsRequest?.let { request ->
+                        KsuItemsDialog(
+                            title = request.title,
+                            items = request.items,
+                            onSelect = { itemsRequest = null; request.onSelect(it) },
+                            onDismiss = { itemsRequest = null },
+                        )
+                    }
+                    multiChoiceRequest?.let { request ->
+                        KsuMultiChoiceDialog(
+                            title = request.title,
+                            items = request.items,
+                            selected = request.selected,
+                            okText = getString(android.R.string.ok),
+                            onConfirm = { multiChoiceRequest = null; request.onConfirm(it) },
+                            onDismiss = { multiChoiceRequest = null },
                         )
                     }
                 }

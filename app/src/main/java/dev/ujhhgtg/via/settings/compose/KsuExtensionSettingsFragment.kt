@@ -154,13 +154,22 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
         if (updating) return
         val candidates = extensions.filter { it.userEnabled }
         if (candidates.isEmpty()) return
-        val dialog = ViaDialog(requireActivity()).title(R.string.update)
-        if (candidates.size == 1) dialog.message(getString(R.string.request_item_update, candidates[0].name))
-        else dialog.multipleChoice(candidates.map { it.name }.toTypedArray(), IntArray(candidates.size) { it })
-        dialog.positive(android.R.string.ok) { _, result ->
-            val selected = if (candidates.size == 1) candidates else (result.selected ?: intArrayOf()).toList().mapNotNull(candidates::getOrNull)
-            update(selected)
-        }.negative(android.R.string.cancel).show()
+        if (candidates.size == 1) {
+            confirm(
+                title = getString(R.string.update),
+                message = getString(R.string.request_item_update, candidates[0].name),
+                confirmText = getString(android.R.string.ok),
+                dismissText = getString(android.R.string.cancel),
+            ) { update(candidates) }
+        } else {
+            showMultiChoice(
+                title = getString(R.string.update),
+                items = candidates.map { it.name },
+                selected = candidates.indices.toSet(),
+            ) { selectedIndexes ->
+                update(selectedIndexes.mapNotNull(candidates::getOrNull))
+            }
+        }
     }
 
     private fun update(selected: List<ExtensionInfo>) {
@@ -228,8 +237,7 @@ class KsuExtensionSettingsFragment : KsuPageFragment() {
 
     private fun failed(error: ExtensionInstallError) {
         if (!isAdded) return
-        ViaDialog(requireActivity()).title(R.string.extension_install_failed)
-            .message(ExtensionHost.errorMessage(requireContext(), error)).positive(android.R.string.ok).show()
+        showMessage(getString(R.string.extension_install_failed), ExtensionHost.errorMessage(requireContext(), error))
     }
 
     private fun toast(resource: Int) = ViaToast.show(requireContext(), resource)
