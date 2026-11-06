@@ -43,6 +43,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -96,7 +98,7 @@ fun KsuSelectableMenu(
 ) {
     items.forEachIndexed { index, text ->
         SelectableDropdownMenuItem(
-            text = { Text(text) },
+            text = { Text(text, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
             selected = index == selectedIndex,
             onClick = {
                 onSelect(index)
@@ -147,7 +149,7 @@ fun KsuTopBarAction(action: KsuTopAction, onMenuAction: (KsuMenuAction) -> Unit)
             ) {
                 action.menu.forEachIndexed { index, item ->
                     DropdownMenuItem(
-                        text = { Text(item.label) },
+                        text = { Text(item.label, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
                         onClick = { expanded = false; onMenuAction(item) },
                         shape = MenuDefaults.itemShape(index = index, count = action.menu.size).shape,
                     )
@@ -170,10 +172,10 @@ fun KsuConfirmDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text(title) },
+        title = { Text(title, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
         text = message?.let { { Text(it) } },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText) } },
-        dismissButton = dismissText?.let { { TextButton(onClick = onDismiss) { Text(it) } } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(confirmText, style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
+        dismissButton = dismissText?.let { { TextButton(onClick = onDismiss) { Text(it, style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } } },
     )
 }
 
@@ -192,13 +194,13 @@ fun KsuInputDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text(title) },
+        title = { Text(title, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
         text = {
             OutlinedTextField(
                 value = value,
                 onValueChange = { value = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = hint?.let { { Text(it) } },
+                label = hint?.let { { Text(it, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
                 singleLine = true,
                 visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
                 keyboardOptions = KeyboardOptions(
@@ -208,7 +210,7 @@ fun KsuInputDialog(
             )
         },
         confirmButton = { TextButton(onClick = { onConfirm(value) }) { Text(confirmText) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
     )
 }
 
@@ -223,9 +225,9 @@ fun KsuMessageDialog(
     AlertDialog(
         onDismissRequest = onOk,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text(title) },
-        text = { Text(message) },
-        confirmButton = { TextButton(onClick = onOk) { Text(okText) } },
+        title = { Text(title, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
+        text = { Text(message, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
+        confirmButton = { TextButton(onClick = onOk) { Text(okText, style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
     )
 }
 
@@ -240,12 +242,12 @@ fun KsuItemsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text(title) },
+        title = { Text(title, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 items.forEachIndexed { index, item ->
                     ListItem(
-                        headlineContent = { Text(item) },
+                        headlineContent = { Text(item, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onSelect(index) },
@@ -254,7 +256,7 @@ fun KsuItemsDialog(
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
     )
 }
 
@@ -272,7 +274,7 @@ fun KsuMultiChoiceDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text(title) },
+        title = { Text(title, style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 items.forEachIndexed { index, item ->
@@ -287,12 +289,12 @@ fun KsuMultiChoiceDialog(
                     ) {
                         Checkbox(checked = index in checked, onCheckedChange = null)
                         Spacer(Modifier.width(12.dp))
-                        Text(item)
+                        Text(item, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold))
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { onConfirm(checked) }) { Text(okText) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        confirmButton = { TextButton(onClick = { onConfirm(checked) }) { Text(okText, style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel), style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold)) } },
     )
 }
