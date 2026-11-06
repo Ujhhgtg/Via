@@ -134,20 +134,24 @@ fun KsuTopBarAction(action: KsuTopAction, onMenuAction: (KsuMenuAction) -> Unit)
         return
     }
     var expanded by remember { mutableStateOf(false) }
+    // The anchor Box only wraps the button, so the popup anchors to it without inflating the
+    // layout; the menu itself is KernelSU's rounded group (groupShape(0,1) + per-item shapes).
     Box {
         IconButton(onClick = { expanded = true }) {
             Icon(painterResource(action.icon), action.description)
         }
-        // The row-anchored KsuExpressiveMenu inflates to the full row width, which shoves a
-        // top-bar action onto the back button; the standard DropdownMenu anchors to the button
-        // and never disturbs the layout.
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            action.menu.forEachIndexed { index, item ->
-                DropdownMenuItem(
-                    text = { Text(item.label) },
-                    onClick = { expanded = false; onMenuAction(item) },
-                    shape = MenuDefaults.itemShape(index = index, count = action.menu.size).shape,
-                )
+        DropdownMenuPopup(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuGroup(
+                shapes = MenuDefaults.groupShape(index = 0, count = 1),
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ) {
+                action.menu.forEachIndexed { index, item ->
+                    DropdownMenuItem(
+                        text = { Text(item.label) },
+                        onClick = { expanded = false; onMenuAction(item) },
+                        shape = MenuDefaults.itemShape(index = index, count = action.menu.size).shape,
+                    )
+                }
             }
         }
     }
