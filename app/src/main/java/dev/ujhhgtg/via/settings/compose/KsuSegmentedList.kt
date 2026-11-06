@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -424,9 +425,13 @@ fun KsuInputItem(
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
         content = {
+            // Local state keeps the field editable while the page does not recompose on every
+            // keystroke; the value syncs back when the page reloads it (e.g. async load).
+            var text by remember(title) { mutableStateOf(value) }
+            LaunchedEffect(value) { if (text != value) text = value }
             OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
+                value = text,
+                onValueChange = { text = it; onValueChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = enabled,
                 label = { Text(title) },
