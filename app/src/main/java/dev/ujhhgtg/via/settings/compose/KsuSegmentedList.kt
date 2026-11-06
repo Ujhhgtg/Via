@@ -5,7 +5,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -19,6 +18,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
@@ -414,70 +414,36 @@ fun KsuInputItem(
     enabled: Boolean = true,
     onValueChange: (String) -> Unit,
 ) {
-    var text by remember(title) { mutableStateOf(value) }
-    val keyboardOptions = KeyboardOptions(
-        keyboardType = when {
-            keyboardNumeric -> KeyboardType.Number
-            isPassword -> KeyboardType.Password
-            else -> KeyboardType.Text
-        },
-    )
-    val transformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
+    // InstallerX's Material form: a standard M3 OutlinedTextField inside the segmented card,
+    // the label doubles as the row title and the field keeps its own height when empty.
     SegmentedListItem(
         shapes = LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1),
         enabled = enabled,
         leadingContent = icon?.let { { Icon(painterResource(it), contentDescription = null) } },
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = if (multiline) 12.dp else 8.dp),
         supportingContent = summary?.let { { Text(it) } },
         verticalAlignment = Alignment.CenterVertically,
         colors = defaultSegmentedColors(),
         content = {
-            if (multiline) {
-                Column {
-                    Text(title)
-                    BasicTextField(
-                        value = text,
-                        onValueChange = { text = it; onValueChange(it) },
-                        enabled = enabled,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                        keyboardOptions = keyboardOptions,
-                        visualTransformation = transformation,
-                        minLines = 3,
-                        maxLines = 10,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 6.dp),
-                    )
-                }
-            } else {
-                // Single-line forms keep the title and the field on one row, so an empty field
-                // does not inflate the row to a two-line list item.
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(title)
-                    Spacer(Modifier.width(16.dp))
-                    Box(Modifier.weight(1f)) {
-                        if (text.isEmpty() && placeholder != null) {
-                            Text(
-                                text = placeholder,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        BasicTextField(
-                            value = text,
-                            onValueChange = { text = it; onValueChange(it) },
-                            enabled = enabled,
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                            keyboardOptions = keyboardOptions,
-                            visualTransformation = transformation,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-            }
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = enabled,
+                label = { Text(title) },
+                placeholder = placeholder?.let { { Text(it) } },
+                singleLine = !multiline,
+                maxLines = if (multiline) 8 else 1,
+                textStyle = MaterialTheme.typography.bodyLarge,
+                visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = when {
+                        keyboardNumeric -> KeyboardType.Number
+                        isPassword -> KeyboardType.Password
+                        else -> KeyboardType.Text
+                    },
+                ),
+                shape = MaterialTheme.shapes.large,
+            )
         },
     )
 }
