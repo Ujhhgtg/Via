@@ -2,7 +2,6 @@ package dev.ujhhgtg.via.settings.compose
 
 import dev.ujhhgtg.via.R
 import dev.ujhhgtg.via.Shell
-import dev.ujhhgtg.via.data.BrowserPreferences
 
 /**
  * The Compose settings root. It mirrors the classic page's ids and destinations; every row has a
@@ -30,10 +29,6 @@ class KsuSettingsFragment : KsuPageFragment() {
             KsuGroup(context.getString(R.string.settings_group_about), listOf(
                 KsuNavRow(5, R.drawable.ic_ksu_info, context.getString(R.string.settings_about)),
             )),
-            KsuGroup(null, listOf(
-                KsuToggleRow(KEY_KSU_UI, R.drawable.ic_ksu_tune, context.getString(R.string.settings_ksu_ui),
-                    context.getString(R.string.settings_ksu_ui_summary), checked = true),
-            )),
         )
     }
 
@@ -51,13 +46,5 @@ class KsuSettingsFragment : KsuPageFragment() {
         }
     }
 
-    override fun onToggle(row: KsuToggleRow, checked: Boolean) {
-        if (row.key != KEY_KSU_UI || checked) return
-        BrowserPreferences(requireContext()).ksuSettingsUi = false
-        onBack()
-    }
-
-    companion object {
-        private const val KEY_KSU_UI = "ksu_ui"
-    }
+    companion object {}
 }
