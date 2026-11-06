@@ -49,7 +49,15 @@ class KsuScriptEditorSettingsFragment : KsuPageFragment() {
     private fun save() {
         val parsed = UserScript.parse(source, downloadUrl)
         if (parsed == null) {
-            showMessage(getString(R.string.title_add_metadata_block), getString(R.string.message_add_metadata_block))
+            showMessage(
+                title = getString(R.string.title_add_metadata_block),
+                message = getString(R.string.message_add_metadata_block),
+                onOk = {
+                    // hb.i1.a2: confirm inserts the default metadata block at the top.
+                    source = METADATA + source
+                    refresh()
+                },
+            )
             return
         }
         val context = requireContext().applicationContext
@@ -74,6 +82,18 @@ class KsuScriptEditorSettingsFragment : KsuPageFragment() {
     companion object {
         const val RESULT = "script_result_v2"
         private const val TEMPLATE = "// ==UserScript==\n// @name \n// @match https://*/*\n// ==/UserScript==\n"
+
+        /** hb.i1: the default metadata block prepended on confirm. */
+        private const val METADATA = "// ==UserScript==\n" +
+            "// @name         New Userscript\n" +
+            "// @namespace    https://viayoo.com/\n" +
+            "// @version      0.1\n" +
+            "// @description  try to take over the world!\n" +
+            "// @author       You\n" +
+            "// @run-at       document-end\n" +
+            "// @match        https://*/*\n" +
+            "// @grant        none\n" +
+            "// ==/UserScript==\n\n"
 
         private fun newInstance(id: Int) = KsuScriptEditorSettingsFragment().apply {
             arguments = android.os.Bundle().apply { putInt("id", id) }
