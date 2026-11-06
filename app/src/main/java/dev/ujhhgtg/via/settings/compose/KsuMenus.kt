@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenuPopup
@@ -123,7 +124,7 @@ fun Modifier.trackPressPosition(onPress: (Offset) -> Unit): Modifier = pointerIn
     }
 }
 
-/** A top-bar action; when it carries menu items the expressive menu opens under the button. */
+/** A top-bar action; when it carries menu items a standard anchored menu opens under the button. */
 @Composable
 fun KsuTopBarAction(action: KsuTopAction, onMenuAction: (KsuMenuAction) -> Unit) {
     if (action.menu.isEmpty()) {
@@ -133,12 +134,14 @@ fun KsuTopBarAction(action: KsuTopAction, onMenuAction: (KsuMenuAction) -> Unit)
         return
     }
     var expanded by remember { mutableStateOf(false) }
-    var anchor by remember { mutableStateOf(IntOffset.Zero) }
-    Box(Modifier.trackPressPosition { anchor = it.round() }) {
+    Box {
         IconButton(onClick = { expanded = true }) {
             Icon(painterResource(action.icon), action.description)
         }
-        KsuExpressiveMenu(expanded = expanded, onDismissRequest = { expanded = false }, anchorOffset = anchor) {
+        // The row-anchored KsuExpressiveMenu inflates to the full row width, which shoves a
+        // top-bar action onto the back button; the standard DropdownMenu anchors to the button
+        // and never disturbs the layout.
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             action.menu.forEachIndexed { index, item ->
                 DropdownMenuItem(
                     text = { Text(item.label) },
