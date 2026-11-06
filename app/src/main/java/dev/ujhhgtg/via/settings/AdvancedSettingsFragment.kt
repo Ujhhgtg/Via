@@ -48,7 +48,13 @@ class AdvancedSettingsFragment : SettingsListFragment() {
             8 -> preferences.disablePredictiveBack = enabled
             9 -> {
                 preferences.ksuSettingsUi = enabled
-                android.widget.Toast.makeText(requireContext(), R.string.settings_ksu_ui_toast, android.widget.Toast.LENGTH_SHORT).show()
+                if (enabled) {
+                    // The Compose root only takes effect once Settings is reopened, so leave the
+                    // whole settings stack back to the browser.
+                    parentFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                } else {
+                    android.widget.Toast.makeText(requireContext(), R.string.settings_ksu_ui_toast, android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
         // hb.z.h3: only Save-Data, debugging and safe-browsing changes set n.y.
